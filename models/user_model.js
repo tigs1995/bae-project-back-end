@@ -1,6 +1,6 @@
 module.exports = (sequelize, type) => {
     return sequelize.define('user', {
-        userName: {
+        username: {
             type: type.STRING,
             field: 'username',
             allowNull: false
