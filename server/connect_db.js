@@ -1,5 +1,5 @@
 const Sequelize = require('sequelize');
-const UserModel = require('./models/user_model')
+const UserModel = require('../models/user_model');
 
 const connection = new Sequelize('app', 'root', 'password', {
     host: 'localhost',
