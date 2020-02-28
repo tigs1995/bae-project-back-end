@@ -1,5 +1,5 @@
 {
-    "eventURL":"app",
-    "eventDb":"/userdb",
+    "appURL":"app",
+    "appDb":"/userdb",
     "dbUrl":"localhost:27017"
 }
