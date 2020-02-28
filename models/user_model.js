@@ -1,15 +1,25 @@
-module.exports = (sequelize, type) => {
-    return sequelize.define('user', {
-        username: {
-            type: type.STRING,
-            field: 'username',
-            allowNull: false
+const bcrypt = require("bcrypt");
+module.exports = function(sequelize, type) {
+  const User = sequelize.define(
+    "user",
+    {
+      username: {
+        type: type.STRING,
+        field: "username"
+      },
+      password: DataTypes.STRING
+    },
+    {
+      freezeTableName: true,
+      instanceMethods: {
+        generateHash(password) {
+          return bcrypt.hash(password, bcrypt.genSaltSync(8));
         },
-        password: {
-            type: type.STRING,
-            field: 'password',
-            allowNull: false,
+        validPassword(password) {
+          return bcrypt.compare(password, this.password);
         }
-
-    })
+      }
+    }
+  );
+  return User;
 };
