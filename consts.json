@@ -1,5 +1,5 @@
 {
     "appURL":"app",
-    "appDb":"/userdb",
-    "dbUrl":"localhost:27017"
+    "dbHost":"localhost",
+    "dbPort": "3306"
 }

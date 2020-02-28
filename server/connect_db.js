@@ -1,8 +1,10 @@
 const Sequelize = require('sequelize');
 const UserModel = require('../models/user_model');
+const {dbHost, dbPort} = require("../consts.json");
 
 const connection = new Sequelize('app', 'root', 'password', {
-    host: 'localhost',
+    host: dbHost,
+    port: dbPort,
     dialect: 'mysql',
     pool: {
         max: 10,

@@ -17,3 +17,5 @@ router.get("/get/:id", (req, res) => {
   });
   return query.then(user => res.json(user));
 });
+
+module.exports = router;
