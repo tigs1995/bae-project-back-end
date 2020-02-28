@@ -1,0 +1,5 @@
+{
+    "eventURL":"app",
+    "eventDb":"/userdb",
+    "dbUrl":"localhost:27017"
+}
