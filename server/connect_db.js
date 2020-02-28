@@ -14,7 +14,7 @@ const connection = new Sequelize('app', 'root', 'password', {
 
 const User = UserModel(connection, Sequelize);
 
-sequelize.sync({ force: true }).then(() => {
+connect.sync({ force: true }).then(() => {
     console.log("Database & tables created!")
 });
 
