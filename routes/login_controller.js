@@ -4,7 +4,7 @@ const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
 const validateLoginInput = require("../validation/login");
 
-router.post("/", (req, res) => {
+router.post("/", async (req, res) => {
   const { errors, isValid } = validateLoginInput(req.body);
   if (!isValid) {
     return res.status(400).json(errors);
@@ -16,10 +16,9 @@ router.post("/", (req, res) => {
   const username = req.body.username;
   const password = req.body.password;
 
-  let currentUser = User.findOne({
+  let currentUser = await User.findOne({
     where: {
-      username: username,
-      password: password
+      username: username
     }
   });
   if (!currentUser) {
@@ -28,32 +27,30 @@ router.post("/", (req, res) => {
     });
   }
 
-  bcrypt.compare(password, user.password).then(isMatch => {
-    if (isMatch) {
-      const payload = {
-        id: currentUser.id,
-        username: currentUser.username
-      };
+  if (bcrypt.compareSync(password, currentUser.password)) {
+    const payload = {
+      id: currentUser.id,
+      username: currentUser.username
+    };
 
-      jwt.sign(
-        payload,
-        keys.secretOrKey,
-        {
-          expiresIn: 31556926
-        },
-        (err, token) => {
-          res.json({
-            success: true,
-            token: "Bearer " + token
-          });
-        }
-      );
-    } else {
-      return res
-        .status(400)
-        .json({ passwordincorrect: "Your username or password is incorrect" });
-    }
-  });
+    jwt.sign(
+      payload,
+      keys.secretOrKey,
+      {
+        expiresIn: 31556926
+      },
+      (err, token) => {
+        res.json({
+          success: true,
+          token: "Bearer " + token
+        });
+      }
+    );
+  } else {
+    return res
+      .status(400)
+      .json({ passwordincorrect: "Your username or password is incorrect" });
+  }
 });
 
 router.post("/create", (req, res) => {
