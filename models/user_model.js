@@ -1,4 +1,4 @@
-const bcrypt = require("bcrypt");
+const bcrypt = require("bcryptjs");
 module.exports = function(sequelize, type) {
   const User = sequelize.define(
     "user",
@@ -7,16 +7,18 @@ module.exports = function(sequelize, type) {
         type: type.STRING,
         field: "username"
       },
-      password: DataTypes.STRING
+      password: {
+        type:  type.STRING,
+        set (val) {
+          this.setDataValue('password', bcrypt.hashSync(val, 12));
+        }
+      }
     },
     {
       freezeTableName: true,
       instanceMethods: {
-        generateHash(password) {
-          return bcrypt.hash(password, bcrypt.genSaltSync(8));
-        },
         validPassword(password) {
-          return bcrypt.compare(password, this.password);
+          return bcrypt.compareSync(password, this.password);
         }
       }
     }

@@ -2,7 +2,7 @@ const router = require("express").Router();
 const { User } = require("../server/connect_db");
 const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
-const validateLoginInput = require("../../validation/login");
+const validateLoginInput = require("../validation/login");
 
 router.post("/", (req, res) => {
   const { errors, isValid } = validateLoginInput(req.body);
