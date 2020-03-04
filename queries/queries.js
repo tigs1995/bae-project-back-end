@@ -2,7 +2,7 @@ const { connection } = require("../server/connect_db");
 
 let queryCitizensBySurname = async (surname) => {
     const results = await connection.query(
-        "SELECT * FROM citizen WHERE surname LIKE " + surname
+        "SELECT * FROM citizen WHERE surname LIKE '%" + surname + "%'"
     );
     return results;
 };
@@ -10,31 +10,31 @@ let queryCitizensBySurname = async (surname) => {
 async function queryFirstLevel(queryType, surname, forenames) {
     let queryVehicleRegByName = async (forenames, surname) => {
         const results = await connection.query(
-            "SELECT * FROM vehicle_registrations WHERE forenames LIKE '" +
+            "SELECT * FROM vehicle_registrations WHERE forenames LIKE '%" +
             forenames +
-            "' AND surname LIKE '" +
+            "%' AND surname LIKE '%" +
             surname +
-            "'"
+            "%'"
         );
         return results;
     };
 
     let querySubscriptionByName = async (forenames, surname) => {
         const results = await connection.query(
-            "SELECT * FROM subscriber_records WHERE forenames LIKE '" +
+            "SELECT * FROM subscriber_records WHERE forenames LIKE '%" +
             forenames +
-            "' AND surname LIKE " +
-            surname + "'"
+            "%' AND surname LIKE '%" +
+            surname + "%'"
         );
         return results;
     };
 
     let queryBankAccByName = async (forenames, surname) => {
         const results = await connection.query(
-            "SELECT * FROM bank_account_holders WHERE forenames LIKE '" +
+            "SELECT * FROM bank_account_holders WHERE forenames LIKE '%" +
             forenames +
-            "' AND surname LIKE '" +
-            surname + "'"
+            "%' AND surname LIKE '%" +
+            surname + "%'"
         );
         return results;
     };
@@ -53,28 +53,28 @@ async function querySecondLevel(queryType, data) {
 
     let queryAnprObservations = async (vehicleRegistrationNo) => {
         const results = await connection.query(
-            'SELECT * FROM anpr_bservations WHERE vehicleRegistrationNo LIKE ' + vehicleRegistrationNo + '"'
+            'SELECT * FROM anpr_bservations WHERE vehicleRegistrationNo LIKE "' + vehicleRegistrationNo + '"'
         );
         return results;
     };
 
     let queryMobileCallRecords = async (callerMSISDN) => {
         const results = await connection.query(
-            'SELECT * FROM mobile_call_records WHERE callerMSISDN LIKE ' + callerMSISDN + '"'
+            'SELECT * FROM mobile_call_records WHERE callerMSISDN LIKE "' + callerMSISDN + '"'
         );
         return results;
     };
 
     let queryMobileCallRecordsReciever = async (receieverMSISDN) => {
         const results = await connection.query(
-            'SELECT * FROM mobile_call_records WHERE receieverMSISDN LIKE ' + receieverMSISDN + '"'
+            'SELECT * FROM mobile_call_records WHERE receieverMSISDN LIKE "' + receieverMSISDN + '"'
         );
         return results;
     };
 
     let queryEposTransactions = async (payeeAccount) => {
         const results = await connection.query(
-            'SELECT * FROM epos_transactions WHERE payeeAccount LIKE ' + payeeAccount + '"'
+            'SELECT * FROM epos_transactions WHERE payeeAccount LIKE "' + payeeAccount + '"'
         );
         return results;
     };
