@@ -18,9 +18,10 @@ let queryCitizen = async (surname, forenames) => {
   return results[0];
 };
 
-let queryCitizenById = async citizenId => {
+// Pass in res as a parameter. Res is passed in from the controller.
+let queryCitizenById = async (citizenID, res) => {
   await connection
-    .query("SELECT * FROM citizen WHERE citizenId LIKE '" + citizenId + "'")
+    .query("SELECT * FROM citizen WHERE citizenID LIKE '" + citizenID + "'")
     .then(cit => {
       connection
         .query(
@@ -29,18 +30,22 @@ let queryCitizenById = async citizenId => {
           "'" +
           " AND surname LIKE '" +
           cit[0][0].surname +
+          "'" +
+          " AND dateOfBirth LIKE '" +
+          cit[0][0].dateOfBirth +
           "'"
         )
         .then(veh => {
           const toReturn = {
             citizenID: cit[0][0].citizenID,
             dateOfBirth: cit[0][0].dateOfBirth,
-            homeAddress: cit[0][0].homeAddress,
+            streetName: cit[0][0].streetName,
+            city: cit[0][0].city,
+            postcode: cit[0][0].postcode,
             placeOfBirth: cit[0][0].placeOfBirth,
-            vehicleRegistrationNo: veh[0]
+            vehicleRegistrations: veh[0]
           };
-          console.log(toReturn);
-          return toReturn;
+          res.json(toReturn);
         });
     });
 };
