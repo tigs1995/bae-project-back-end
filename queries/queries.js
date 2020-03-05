@@ -19,21 +19,32 @@ let queryCitizen = async (surname, forenames) => {
 };
 
 let queryCitizenById = async citizenId => {
-  const citResults = await connection.query(
-    "SELECT * FROM citizen WHERE citizenId LIKE '" + citizenId + "'"
-  );
-  const vehicleResults = await queryFirstLevel(
-    "vehicle_registrations",
-    citResults[0].surname,
-    citResults[0].forenames
-  );
-  return {
-    citizenId: citResults[0].citizenId,
-    dateOfBirth: citResults[0].dateOfBirth,
-    address: citResults[0].address,
-    placeOfBirth: citResults[0].placeOfBirth,
-    vehicleRegistrationNumber: vehicleResults[0].vehicleRegistrationNo
-  };
+  await connection
+    .query("SELECT * FROM citizen WHERE citizenId LIKE '" + citizenId + "'")
+    .then(cit => {
+      connection
+        .query(
+          "SELECT * FROM vehicle_registrations WHERE forenames LIKE '" +
+            cit[0].forenames +
+            "'" +
+            " AND surname LIKE '" +
+            cit[0].surname +
+            "'"
+        )
+        .then(veh => {
+          console.log(cit[0][0].citizenId);
+          let toReturn = {
+            citizenId: cit[0][0].citizenId,
+            dateOfBirth: cit[0][0].dateOfBirth,
+            address: cit[0][0].address,
+            placeOfBirth: cit[0][0].placeOfBirth,
+            vehicleRegistrationNumber: veh[0].vehicleRegistrationNo
+          };
+          console.log(toReturn);
+
+          return toReturn;
+        });
+    });
 };
 
 let queryVehicle = async vehicleRegistrationNo => {
