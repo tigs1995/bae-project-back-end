@@ -25,20 +25,22 @@ let queryCitizenById = async citizenId => {
             connection
                 .query(
                     "SELECT * FROM vehicle_registrations WHERE forenames LIKE '" +
-                    cit[0].forenames +
+                    cit[0][0].forenames +
                     "'" +
                     " AND surname LIKE '" +
-                    cit[0].surname +
+                    cit[0][0].surname +
                     "'"
                 )
                 .then(veh => {
                     const toReturn = {
-                        citizenId: cit[0][0].citizenId,
+                        citizenId: cit[0][0].citizenID,
                         dateOfBirth: cit[0][0].dateOfBirth,
-                        address: cit[0][0].address,
+                        address: cit[0][0].homeAddress,
                         placeOfBirth: cit[0][0].placeOfBirth,
                         vehicleRegistrationNumber: veh[0].vehicleRegistrationNo
                     };
+                    console.log(veh);
+                    console.log(toReturn);
                     return toReturn;
                 });
         });
