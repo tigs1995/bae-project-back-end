@@ -18,11 +18,29 @@ let queryCitizen = async (surname, forenames) => {
   return results[0];
 };
 
+let queryCitizenById = async citizenId => {
+  const citResults = await connection.query(
+    "SELECT * FROM citizen WHERE citizenId LIKE '" + citizenId + "'"
+  );
+  const vehicleResults = await queryFirstLevel(
+    "vehicle_registrations",
+    citResults[0].surname,
+    citResults[0].forenames
+  );
+  return {
+    citizenId: citResults[0].citizenId,
+    dateOfBirth: citResults[0].dateOfBirth,
+    address: citResults[0].address,
+    placeOfBirth: citResults[0].placeOfBirth,
+    vehicleRegistrationNumber: vehicleResults[0].vehicleRegistrationNo
+  };
+};
+
 let queryVehicle = async vehicleRegistrationNo => {
   const results = await connection.query(
-    "SELECT * FROM vehicle_registrations WHERE vehicleRegistrationNo like '" +
+    "SELECT * FROM vehicle_registrations WHERE vehicleRegistrationNo like '%" +
       vehicleRegistrationNo +
-      "'"
+      "%'"
   );
   return results[0];
 };
@@ -181,6 +199,7 @@ module.exports = {
   queryCitizensBySurname,
   queryCitizen,
   queryVehicle,
+  queryCitizenById,
   queryFirstLevel,
   querySecondLevel,
   queryThirdLevel,

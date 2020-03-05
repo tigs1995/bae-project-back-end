@@ -1,7 +1,7 @@
 const router = require("express").Router();
 const query = require("../queries/queries");
 
-router.get("/getVehicle", (req, res) => {
+router.get("/vehicleList", (req, res) => {
   query
     .queryVehicle(req.body.vehicleRegistrationNo)
     .then(vehicle => res.json(vehicle));
