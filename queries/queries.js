@@ -32,7 +32,6 @@ let queryCitizenById = async citizenId => {
                     "'"
                 )
                 .then(veh => {
-                    console.log(cit[0][0].citizenId);
                     const toReturn = {
                         citizenId: cit[0][0].citizenId,
                         dateOfBirth: cit[0][0].dateOfBirth,
@@ -40,8 +39,6 @@ let queryCitizenById = async citizenId => {
                         placeOfBirth: cit[0][0].placeOfBirth,
                         vehicleRegistrationNumber: veh[0].vehicleRegistrationNo
                     };
-                    console.log(toReturn);
-
                     return toReturn;
                 });
         });
