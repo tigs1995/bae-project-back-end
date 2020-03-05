@@ -20,34 +20,39 @@ let queryCitizen = async (surname, forenames) => {
 
 // Pass in res as a parameter. Res is passed in from the controller.
 let queryCitizenById = async (citizenID, res) => {
-  await connection
-    .query("SELECT * FROM citizen WHERE citizenID LIKE '" + citizenID + "'")
-    .then(cit => {
-      connection
-        .query(
-          "SELECT * FROM vehicle_registrations WHERE forenames LIKE '" +
-          cit[0][0].forenames +
-          "'" +
-          " AND surname LIKE '" +
-          cit[0][0].surname +
-          "'" +
-          " AND dateOfBirth LIKE '" +
-          cit[0][0].dateOfBirth +
-          "'"
-        )
-        .then(veh => {
-          const toReturn = {
-            citizenID: cit[0][0].citizenID,
-            dateOfBirth: cit[0][0].dateOfBirth,
-            streetName: cit[0][0].streetName,
-            city: cit[0][0].city,
-            postcode: cit[0][0].postcode,
-            placeOfBirth: cit[0][0].placeOfBirth,
-            vehicleRegistrations: veh[0]
-          };
-          res.json(toReturn);
-        });
-    });
+  try {
+    await connection
+      .query("SELECT * FROM citizen WHERE citizenID LIKE '" + citizenID + "'")
+      .then(cit => {
+        connection
+          .query(
+            "SELECT * FROM vehicle_registrations WHERE forenames LIKE '" +
+            cit[0][0].forenames +
+            "'" +
+            " AND surname LIKE '" +
+            cit[0][0].surname +
+            "'" +
+            " AND dateOfBirth LIKE '" +
+            cit[0][0].dateOfBirth +
+            "'"
+          )
+          .then(veh => {
+            const toReturn = {
+              citizenID: cit[0][0].citizenID,
+              dateOfBirth: cit[0][0].dateOfBirth,
+              streetName: cit[0][0].streetName,
+              city: cit[0][0].city,
+              postcode: cit[0][0].postcode,
+              placeOfBirth: cit[0][0].placeOfBirth,
+              vehicleRegistrations: veh[0]
+            };
+            res.json(toReturn);
+          });
+      });
+  } catch {
+    res.json({ exception: "No data found or incorrect input." });
+    // Front end guys check if body.exception is truthy. 
+  }
 };
 
 let queryVehicle = async vehicleRegistrationNo => {
@@ -59,50 +64,57 @@ let queryVehicle = async vehicleRegistrationNo => {
   return results[0];
 };
 
-let queryVehicleInfoByReg = async vehicleRegistrationNo => {
-  await connection
-    .query("SELECT * FROM vehicle_registrations WHERE vehicleRegistrationNo LIKE '" + vehicleRegistrationNo + "'")
-    .then(veh => {
-      const toReturn = {
-        forenames: veh[0][0].forenames,
-        surname: veh[0][0].surname,
-        registrationID: veh[0][0].registrationID,
-        registrationDate: veh[0][0].registrationDate,
-        vehicleRegistrationNo: veh[0][0].vehicleRegistrationNo,
-        make: veh[0][0].make,
-        model: veh[0][0].model,
-        colour: veh[0][0].colour,
-        driverLicenceID: veh[0][0].driverLicenceID
-      };
-      console.log(toReturn);
-      return toReturn;
-    });
+let queryVehicleInfoByReg = async (vehicleRegistrationNo, res) => {
+  try {
+    await connection
+      .query("SELECT * FROM vehicle_registrations WHERE vehicleRegistrationNo LIKE '" + vehicleRegistrationNo + "'")
+      .then(veh => {
+        const toReturn = {
+          forenames: veh[0][0].forenames,
+          surname: veh[0][0].surname,
+          registrationID: veh[0][0].registrationID,
+          registrationDate: veh[0][0].registrationDate,
+          vehicleRegistrationNo: veh[0][0].vehicleRegistrationNo,
+          make: veh[0][0].make,
+          model: veh[0][0].model,
+          colour: veh[0][0].colour,
+          driverLicenceID: veh[0][0].driverLicenceID
+        };
+        res.json(toReturn);
+      });
+  } catch {
+    res.json({ exception: "No data found or incorrect input." });
+    // Front end guys check if body.exception is truthy. 
+  }
 };
 
-let queryANPRInfoByVehReg = async vehicleRegistrationNo => {
-  await connection
-    .query("SELECT * FROM vehicle_registrations WHERE vehicleRegistrationNo LIKE '" + vehicleRegistrationNo + "'")
-    .then(veh_rec => {
-      connection
-        .query(
-          "SELECT * FROM anpr_observations WHERE vehicleRegistrationNumber LIKE '" + veh_rec[0][0].vehicleRegistrationNo + "'")
-        .then(anpr_cam => {
-          connection
-            .query(
-              "SELECT * FROM anpr_camera WHERE anprId LIKE '" + anpr_cam[0][0].anprId + "'")
-            .then(veh => {
-              const toReturn = {
-                timestamp: veh_rec[0][0].timestamp,
-                streetName: anpr_cam[0][0].streetName,
-                latitude: anpr_cam[0][0].latitude,
-                longtitude: anpr_cam[0][0].longtitude,
-                vehicleRegistrationNo: veh[0]
-              };
-              console.log(toReturn);
-              return toReturn;
-            });
-        });
-    });
+let queryANPRInfoByVehReg = async (vehicleRegistrationNo, res) => {
+  try {
+    await connection
+      .query("SELECT * FROM vehicle_registrations WHERE vehicleRegistrationNo LIKE '" + vehicleRegistrationNo + "'")
+      .then(vehicleRecord => {
+        connection
+          .query("SELECT * FROM anpr_observations WHERE vehicleRegistrationNumber LIKE '" + vehicleRecord[0][0].vehicleRegistrationNo + "'")
+          .then(anprObsRecord => {
+            connection
+              .query(
+                "SELECT * FROM anpr_camera WHERE anprId LIKE '" + anprObsRecord[0][0].ANPRPointId + "'")
+              .then(anprCamRecord => {
+                const toReturn = {
+                  timestamp: anprObsRecord[0][0].timestamp,
+                  streetName: anprCamRecord[0][0].streetName,
+                  latitude: anprCamRecord[0][0].latitude,
+                  longtitude: anprCamRecord[0][0].longtitude,
+                  vehicleRegistrationNo: vehicleRegistrationNo
+                };
+                res.json(toReturn);
+              });
+          });
+      });
+  } catch {
+    res.json({ exception: "No data found or incorrect input." });
+    // Front end guys check if body.exception is truthy. 
+  }
 };
 
 async function queryFirstLevel(queryType, surname, forenames) {
