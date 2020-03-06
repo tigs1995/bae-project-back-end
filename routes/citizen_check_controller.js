@@ -1,7 +1,7 @@
 const router = require("express").Router();
 const query = require("../queries/queries");
 
-router.get("/citizenExists", (req, res) => {
+router.post("/citizenExists", (req, res) => {
   query.queryCitizen(req.body.surname, req.body.forenames).then(cit => {
     try {
       cit[0].surname;
