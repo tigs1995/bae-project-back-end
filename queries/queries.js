@@ -120,6 +120,51 @@ let queryANPRInfoByVehReg = async (vehicleRegistrationNo, res) => {
   }
 };
 
+let queryVehiclesByCitizen = async (citizenID, res) => {
+  try {
+    await connection
+      .query("SELECT * From citizen WHERE citizenID like '" + citizenID + "'")
+      .then(citizenRecord => {
+        connection
+          .query(
+            "SELECT * FROM vehicle_registrations WHERE forenames LIKE '" +
+            citizenRecord[0][0].forenames +
+            "'" +
+            " AND surname LIKE '" +
+            citizenRecord[0][0].surname +
+            "'" +
+            " AND dateOfBirth LIKE '" +
+            citizenRecord[0][0].dateOfBirth +
+            "'"
+          )
+          .then(vehicleRecord => {
+            connection
+              .query(
+                "SELECT * FROM anpr_observations WHERE vehicleRegistrationNumber LIKE '" + vehicleRecord[0][0].vehicleRegistrationNo + "'")
+              .then(anprObsRecord => {
+                connection
+                  .query(
+                    "SELECT * FROM anpr_camera WHERE anprId LIKE '" + anprObsRecord[0][0].ANPRPointId + "'")
+                  .then(anprCamRecord => {
+                    const toReturn = {
+                      latitude: anprCamRecord[0][0].latitude,
+                      longtitude: anprCamRecord[0][0].longitude,
+                      vehicleRegistrationNo: vehicleRecord[0][0].vehicleRegistrationNo,
+                      fornames: citizenRecord[0][0].forenames,
+                      surname: citizenRecord[0][0].surname,
+                      timestamp: anprObsRecord[0][0].timestamp
+                    };
+                    // filterbytime()
+                    res.json(toReturn);
+                  });
+              });
+          });
+      });
+  } catch {
+    res.json({ exception: "No data found or incorrect input." });
+  }
+};
+
 async function queryFirstLevel(queryType, surname, forenames) {
   let queryVehicleRegByName = async (forenames, surname) => {
     const results = await connection.query(
@@ -280,5 +325,6 @@ module.exports = {
   queryThirdLevel,
   queryFourthLevel,
   queryVehicleInfoByReg,
-  queryANPRInfoByVehReg
+  queryANPRInfoByVehReg,
+  queryVehiclesByCitizen
 };
