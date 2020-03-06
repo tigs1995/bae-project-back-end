@@ -9,4 +9,5 @@ router.get("/getANPRInfo", ({ body }, res) => {
   query.queryANPRInfoByVehReg(body.vehicleRegistrationNo, res);
 });
 
+
 module.exports = router;

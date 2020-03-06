@@ -104,7 +104,7 @@ let queryANPRInfoByVehReg = async (vehicleRegistrationNo, res) => {
                   timestamp: anprObsRecord[0][0].timestamp,
                   streetName: anprCamRecord[0][0].streetName,
                   latitude: anprCamRecord[0][0].latitude,
-                  longtitude: anprCamRecord[0][0].longtitude,
+                  longtitude: anprCamRecord[0][0].longitude,
                   vehicleRegistrationNo: vehicleRegistrationNo
                 };
                 res.json(toReturn);
