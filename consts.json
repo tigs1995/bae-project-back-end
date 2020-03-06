@@ -1,4 +1,4 @@
 {
-    "dbHost":"localhost",
-    "dbPort": "3306"
+  "dbHost": "appdb.clwsewlij2or.eu-west-2.rds.amazonaws.com",
+  "dbPort": "3306"
 }
