@@ -1,7 +1,7 @@
 const router = require("express").Router();
 const query = require("../queries/queries");
 
-router.get("/vehicleExists", (req, res) => {
+router.post("/vehicleExists", (req, res) => {
   query.queryVehicle(req.body.vehicleRegistrationNo).then(vehicle => {
     try {
       vehicle[0].model;

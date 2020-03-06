@@ -18,7 +18,6 @@ let queryCitizen = async (surname, forenames) => {
   return results[0];
 };
 
-// Pass in res as a parameter. Res is passed in from the controller.
 let queryCitizenById = async (citizenID, res) => {
   try {
     await connection
@@ -37,12 +36,17 @@ let queryCitizenById = async (citizenID, res) => {
             "'"
           )
           .then(veh => {
+            for (let i of veh[0]) {
+              i.streetName = i.streetName.substring(4);
+              i.postcode = i.postcode.substring(1, i.postcode.length - 1);
+              i.city = i.city.substring(1);
+            }
             const toReturn = {
               citizenID: cit[0][0].citizenID,
               dateOfBirth: cit[0][0].dateOfBirth,
-              streetName: cit[0][0].streetName,
-              city: cit[0][0].city,
-              postcode: cit[0][0].postcode,
+              streetName: cit[0][0].streetName.substring(4),
+              city: cit[0][0].city.substring(1),
+              postcode: cit[0][0].postcode.substring(1, cit[0][0].postcode.length - 1),
               placeOfBirth: cit[0][0].placeOfBirth,
               vehicleRegistrations: veh[0]
             };
@@ -51,7 +55,6 @@ let queryCitizenById = async (citizenID, res) => {
       });
   } catch {
     res.json({ exception: "No data found or incorrect input." });
-    // Front end guys check if body.exception is truthy. 
   }
 };
 
