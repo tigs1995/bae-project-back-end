@@ -1,5 +1,47 @@
 const { connection } = require("../server/connect_db");
 
+class ConditionalSwitch {
+
+  constructor() {
+    this.lastExecuted = false;
+  }
+
+  case(condition, func) {
+    if (condition) {
+      func();
+      this.lastExecuted = true;
+    } else {
+      this.lastExecuted = false;
+    }
+    return this;
+  }
+
+  break() {
+    if (this.lastExecuted) return new Break();
+    return this;
+  }
+
+  default(func) {
+    if (!this.lastExecuted) func();
+  }
+}
+
+class Break {
+  case() {
+    return this;
+  }
+  break() {
+    return this;
+  }
+  default() {
+    return this;
+  }
+}
+
+const Cswitch = () => {
+  return new ConditionalSwitch();
+};
+
 let queryCitizensBySurname = async surname => {
   const results = await connection.query(
     "SELECT * FROM citizen WHERE surname LIKE '%" + surname + "%'"
@@ -87,7 +129,6 @@ let queryVehicleInfoByReg = async (vehicleRegistrationNo, res) => {
       });
   } catch {
     res.json({ exception: "No data found or incorrect input." });
-    // Front end guys check if body.exception is truthy. 
   }
 };
 
@@ -116,11 +157,10 @@ let queryANPRInfoByVehReg = async (vehicleRegistrationNo, res) => {
       });
   } catch {
     res.json({ exception: "No data found or incorrect input." });
-    // Front end guys check if body.exception is truthy. 
   }
 };
 
-let queryVehiclesByCitizen = async (citizenID, res) => {
+let queryVehiclesByCitizen = async (citizenID, afterTime, beforeTime, res) => {
   try {
     await connection
       .query("SELECT * From citizen WHERE citizenID like '" + citizenID + "'")
@@ -138,25 +178,83 @@ let queryVehiclesByCitizen = async (citizenID, res) => {
             "'"
           )
           .then(vehicleRecord => {
+            let queryString;
+            Cswitch()
+              .case(afterTime && beforeTime, () => {
+                try {
+                  queryString =
+                    "SELECT * FROM anpr_observations WHERE vehicleRegistrationNumber LIKE '" +
+                    vehicleRecord[0][0].vehicleRegistrationNo + "' " +
+                    "AND timestamp BETWEEN '" +
+                    afterTime + "' AND '" + beforeTime + "'";
+                } catch {
+                  res.json({ exception: "No data found or incorrect input." });
+                }
+              })
+              .break()
+              .case(afterTime, () => {
+                try {
+                  queryString =
+                    "SELECT * FROM anpr_observations WHERE vehicleRegistrationNumber LIKE '" +
+                    vehicleRecord[0][0].vehicleRegistrationNo + "' " +
+                    "AND timestamp >= '" +
+                    afterTime + "'";
+                } catch {
+                  res.json({ exception: "No data found or incorrect input." });
+                }
+              })
+              .break()
+              .case(beforeTime, () => {
+                try {
+                  queryString =
+                    "SELECT * FROM anpr_observations WHERE vehicleRegistrationNumber LIKE '" +
+                    vehicleRecord[0][0].vehicleRegistrationNo + "' " +
+                    "AND timestamp <= '" +
+                    beforeTime + "'";
+                } catch {
+                  res.json({ exception: "No data found or incorrect input." });
+                }
+              })
+              .default(() => {
+                try {
+                  queryString =
+                    "SELECT * FROM anpr_observations WHERE vehicleRegistrationNumber LIKE '" +
+                    vehicleRecord[0][0].vehicleRegistrationNo + "'";
+                } catch {
+                  res.json({ exception: "No data found or incorrect input." });
+                }
+              });
             connection
-              .query(
-                "SELECT * FROM anpr_observations WHERE vehicleRegistrationNumber LIKE '" + vehicleRecord[0][0].vehicleRegistrationNo + "'")
+              .query(queryString)
               .then(anprObsRecord => {
-                connection
-                  .query(
-                    "SELECT * FROM anpr_camera WHERE anprId LIKE '" + anprObsRecord[0][0].ANPRPointId + "'")
-                  .then(anprCamRecord => {
-                    const toReturn = {
-                      latitude: anprCamRecord[0][0].latitude,
-                      longtitude: anprCamRecord[0][0].longitude,
-                      vehicleRegistrationNo: vehicleRecord[0][0].vehicleRegistrationNo,
-                      fornames: citizenRecord[0][0].forenames,
-                      surname: citizenRecord[0][0].surname,
-                      timestamp: anprObsRecord[0][0].timestamp
-                    };
-                    // filterbytime()
-                    res.json(toReturn);
-                  });
+                anprObsRecord[0].push("0");
+                for (let i in anprObsRecord[0]) {
+                  connection
+                    .query(
+                      "SELECT * FROM anpr_camera WHERE anprId LIKE '" + anprObsRecord[0][i].ANPRPointId + "'")
+                    .then(anprCamRecord => {
+                      let toReturn = [];
+                      while (true) {
+                        // Basically, loop until the promise is resolved.
+                        try {
+                          if (anprCamRecord[0][0].latitude !== undefined) {
+                            toReturn.push({
+                              latitude: anprCamRecord[0][0].latitude,
+                              longtitude: anprCamRecord[0][0].longitude,
+                              vehicleRegistrationNo: vehicleRecord[0][0].vehicleRegistrationNo,
+                              fornames: citizenRecord[0][0].forenames,
+                              surname: citizenRecord[0][0].surname,
+                              timestamp: anprObsRecord[0][i].timestamp
+                            });
+                            break;
+                          }
+                        } catch {
+                          res.json({ exception: "No data found or incorrect input." });
+                        }
+                      }
+                      if (i == anprObsRecord[0].length - 1) res.json(toReturn);
+                    });
+                }
               });
           });
       });
