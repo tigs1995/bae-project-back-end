@@ -1,5 +1,8 @@
 const { connection } = require("../server/connect_db");
 
+const warning = { Warning: "No data found or incorrect input." };
+const exception = { Exception: "Unknown exception." };
+
 class ConditionalSwitch {
 
   constructor() {
@@ -161,106 +164,97 @@ let queryANPRInfoByVehReg = async (vehicleRegistrationNo, res) => {
 };
 
 let queryVehiclesByCitizen = async (citizenID, afterTime, beforeTime, res) => {
+  let queryString =
+    "SELECT citizenID, c.forenames, c.surname, vehicleRegistrationNo, timestamp, latitude, longitude FROM citizen AS c " +
+    "INNER JOIN vehicle_registrations AS v ON c.surname = v.surname AND c.forenames = v.forenames AND c.dateOfBirth = v.dateOfBirth " +
+    "INNER JOIN anpr_observations AS a ON v.vehicleRegistrationNo = a.vehicleRegistrationNumber " +
+    "INNER JOIN anpr_camera AS n ON a.ANPRPointId = n.anprId";
+  Cswitch()
+    .case(afterTime && beforeTime, () => {
+      queryString += " WHERE citizenID = '" + citizenID + "' AND timestamp BETWEEN '" +
+        afterTime + "' AND '" + beforeTime + "'";
+    })
+    .break()
+    .case(afterTime, () => {
+      queryString += " WHERE citizenID = '" + citizenID + "' AND timestamp >= '" + afterTime + "'";
+    })
+    .break()
+    .case(beforeTime, () => {
+      queryString += " WHERE citizenID = '" + citizenID + "' AND timestamp <= '" + beforeTime + "'";
+    })
+    .default(() => {
+      queryString += " WHERE citizenID = '" + citizenID + "'";
+    });
   try {
     await connection
-      .query("SELECT * From citizen WHERE citizenID like '" + citizenID + "'")
-      .then(citizenRecord => {
-        connection
-          .query(
-            "SELECT * FROM vehicle_registrations WHERE forenames LIKE '" +
-            citizenRecord[0][0].forenames +
-            "'" +
-            " AND surname LIKE '" +
-            citizenRecord[0][0].surname +
-            "'" +
-            " AND dateOfBirth LIKE '" +
-            citizenRecord[0][0].dateOfBirth +
-            "'"
-          )
-          .then(vehicleRecord => {
-            let queryString;
-            Cswitch()
-              .case(afterTime && beforeTime, () => {
-                try {
-                  queryString =
-                    "SELECT * FROM anpr_observations WHERE vehicleRegistrationNumber LIKE '" +
-                    vehicleRecord[0][0].vehicleRegistrationNo + "' " +
-                    "AND timestamp BETWEEN '" +
-                    afterTime + "' AND '" + beforeTime + "'";
-                } catch {
-                  res.json({ exception: "No data found or incorrect input." });
-                }
-              })
-              .break()
-              .case(afterTime, () => {
-                try {
-                  queryString =
-                    "SELECT * FROM anpr_observations WHERE vehicleRegistrationNumber LIKE '" +
-                    vehicleRecord[0][0].vehicleRegistrationNo + "' " +
-                    "AND timestamp >= '" +
-                    afterTime + "'";
-                } catch {
-                  res.json({ exception: "No data found or incorrect input." });
-                }
-              })
-              .break()
-              .case(beforeTime, () => {
-                try {
-                  queryString =
-                    "SELECT * FROM anpr_observations WHERE vehicleRegistrationNumber LIKE '" +
-                    vehicleRecord[0][0].vehicleRegistrationNo + "' " +
-                    "AND timestamp <= '" +
-                    beforeTime + "'";
-                } catch {
-                  res.json({ exception: "No data found or incorrect input." });
-                }
-              })
-              .default(() => {
-                try {
-                  queryString =
-                    "SELECT * FROM anpr_observations WHERE vehicleRegistrationNumber LIKE '" +
-                    vehicleRecord[0][0].vehicleRegistrationNo + "'";
-                } catch {
-                  res.json({ exception: "No data found or incorrect input." });
-                }
-              });
-            connection
-              .query(queryString)
-              .then(anprObsRecord => {
-                anprObsRecord[0].push("0");
-                for (let i in anprObsRecord[0]) {
-                  connection
-                    .query(
-                      "SELECT * FROM anpr_camera WHERE anprId LIKE '" + anprObsRecord[0][i].ANPRPointId + "'")
-                    .then(anprCamRecord => {
-                      let toReturn = [];
-                      while (true) {
-                        // Basically, loop until the promise is resolved.
-                        try {
-                          if (anprCamRecord[0][0].latitude !== undefined) {
-                            toReturn.push({
-                              latitude: anprCamRecord[0][0].latitude,
-                              longtitude: anprCamRecord[0][0].longitude,
-                              vehicleRegistrationNo: vehicleRecord[0][0].vehicleRegistrationNo,
-                              fornames: citizenRecord[0][0].forenames,
-                              surname: citizenRecord[0][0].surname,
-                              timestamp: anprObsRecord[0][i].timestamp
-                            });
-                            break;
-                          }
-                        } catch {
-                          res.json({ exception: "No data found or incorrect input." });
-                        }
-                      }
-                      if (i == anprObsRecord[0].length - 1) res.json(toReturn);
-                    });
-                }
-              });
-          });
+      .query(queryString)
+      .then(result => {
+        if (!result[0].length || !citizenID) {
+          res.json(warning);
+        } else {
+          res.json(result[0]);
+        }
       });
   } catch {
-    res.json({ exception: "No data found or incorrect input." });
+    res.json(exception);
   }
+};
+
+let queryFinancialsByCitizen = async (citizenID, afterTime, beforeTime, eposOrAtm, res) => {
+
+  let [epos, atm] = false;
+  if (eposOrAtm == "epos") {
+    epos = true;
+  } else if (eposOrAtm == "atm") {
+    atm = true;
+  }
+
+  let queryString =
+    "INNER JOIN bank_account_holders AS b ON c.surname = b.surname AND c.forenames = b.forenames AND c.dateOfBirth = b.dateOfBirth " +
+    "INNER JOIN epos_transactions AS e ON b.bankAccountId = e.payeeAccount ";
+
+  Cswitch()
+    .case(atm, () => {
+      queryString +=
+        "INNER JOIN atm_transactions AS a ON a.bankCardNumber = e.bankCardNumber " +
+        "INNER JOIN atm_point as p ON p.atmId = a.atmId";
+      queryString = "SELECT citizenID, c.forenames, c.surname, bankCardNumber, timestamp, latitude, longitude FROM citizen AS c " + queryString;
+    })
+    .case(epos, () => {
+      queryString +=
+        "INNER JOIN epos_terminals as t ON e.eposId = t.id";
+      queryString = "SELECT citizenID, c.forenames, c.surname, bankAccountNo, timestamp, latitude, longitude FROM citizen AS c " + queryString;
+    })
+    .case(afterTime && beforeTime, () => {
+      queryString += " WHERE citizenID = '" + citizenID + "' AND timestamp BETWEEN '" +
+        afterTime + "' AND '" + beforeTime + "'";
+    })
+    .break()
+    .case(afterTime, () => {
+      queryString += " WHERE citizenID = '" + citizenID + "' AND timestamp >= '" + afterTime + "'";
+    })
+    .break()
+    .case(beforeTime, () => {
+      queryString += " WHERE citizenID = '" + citizenID + "' AND timestamp <= '" + beforeTime + "'";
+    })
+    .default(() => {
+      queryString += " WHERE citizenID = '" + citizenID + "'";
+    });
+
+  try {
+    await connection
+      .query(queryString)
+      .then(result => {
+        if (!result[0].length || !citizenID) {
+          res.json(warning);
+        } else {
+          res.json(result[0]);
+        }
+      });
+  } catch {
+    res.json(exception);
+  }
+
 };
 
 async function queryFirstLevel(queryType, surname, forenames) {
@@ -424,5 +418,6 @@ module.exports = {
   queryFourthLevel,
   queryVehicleInfoByReg,
   queryANPRInfoByVehReg,
-  queryVehiclesByCitizen
+  queryVehiclesByCitizen,
+  queryFinancialsByCitizen
 };
