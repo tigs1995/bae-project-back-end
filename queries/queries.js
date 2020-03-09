@@ -183,6 +183,30 @@ const queryANPRInfoByVehReg = async (vehicleRegistrationNo, res) => {
   }
 };
 
+const queryBankCardByCitizen = async (citizenID, res) => {
+  let queryString =
+    "SELECT bankCardId, cardNumber, sortCode, b.bankAccountId, b.accountNumber, b.bank, c.forenames, c.surname, c.dateOfBirth FROM citizen AS c " +
+    "INNER JOIN bank_account_holders AS b ON c.forenames = b.forenames and c.surname = b.surname and c.dateOfBirth = b.dateOfBirth " +
+    "INNER JOIN bank_card AS n ON b.bankAccountId = n.bankAccountId";
+  Cswitch()
+    .default(() => {
+      queryString += " WHERE citizenID = '" + citizenID + "'";
+    });
+  try {
+    await connection
+      .query(queryString)
+      .then(result => {
+        if (!result[0].length || !citizenID) {
+          res.json(warning);
+        } else {
+          res.json(result[0]);
+        }
+      });
+  } catch {
+    res.json(exception);
+  }
+};
+
 const queryVehiclesByCitizen = async (citizenID, afterTime, beforeTime, res) => {
   // 8728766559 works.
   let queryString =
@@ -264,89 +288,6 @@ const queryVehiclesAll = async (latitude, longitude, radius, afterTime, beforeTi
 };
 
 const queryFinancialsByCitizen = async (citizenID, afterTime, beforeTime, eposOrAtm, res) => {
-
-  // Barely any record make it to the final queries. This is due to our sample set not being large enough.
-  // 6362899727 and 6488697932 work for epos.
-  // None work for atm. Perhaps mock it?
-
-  // make nested
-  let epos = false;
-  let atm = false;
-  if (eposOrAtm == "epos") {
-    epos = true;
-  } else if (eposOrAtm == "atm") {
-    atm = true;
-  }
-
-  const atmInitString = "SELECT citizenID, c.forenames, c.surname, k.cardNumber, a.timestamp, latitude, longitude, amount FROM citizen AS c ";
-
-  // INNER JOIN bank_account_holders AS b ON c.surname = b.surname AND c.forenames = b.forenames AND c.dateOfBirth = b.dateOfBirth 
-  // INNER JOIN bank_cards AS k ON b.bankAccountId = k.bankAccountId 
-  // INNER JOIN epos_transactions AS e on e.bankCardNumber = k.cardNumber 
-  // INNER JOIN atm_transactions AS a ON a.bankCardNumber = e.bankCardNumber 
-  // INNER JOIN atm_point as p ON p.atmId = a.atmId
-  // LIMIT 5;
-
-  const eposInitString = "SELECT citizenID, c.forenames, c.surname, k.cardNumber, e.timestamp, latitude, longitude FROM citizen AS c ";
-
-  // SELECT citizenID, c.forenames, c.surname, k.cardNumber, e.timestamp, latitude, longitude FROM citizen AS c 
-  // INNER JOIN bank_account_holders AS b ON c.surname = b.surname AND c.forenames = b.forenames AND c.dateOfBirth = b.dateOfBirth 
-  // INNER JOIN bank_cards AS k ON b.bankAccountId = k.bankAccountId 
-  // INNER JOIN epos_transactions AS e on e.bankCardNumber = k.cardNumber 
-  // INNER JOIN epos_terminals as t ON e.eposId = t.id
-  // LIMIT 5;
-
-  let queryString =
-    "INNER JOIN bank_account_holders AS b ON c.surname = b.surname AND c.forenames = b.forenames AND c.dateOfBirth = b.dateOfBirth " +
-    "INNER JOIN bank_card AS k ON b.bankAccountId = k.bankAccountId " +
-    "INNER JOIN epos_transactions AS e on e.bankCardNumber = k.cardNumber ";
-
-  Cswitch()
-    .case(atm, () => {
-      queryString +=
-        "INNER JOIN atm_transactions AS a ON a.bankCardNumber = e.bankCardNumber" +
-        "INNER JOIN atm_point as p ON p.atmId = a.atmId";
-      queryString = atmInitString + queryString;
-    })
-    .case(epos, () => {
-      queryString +=
-        "INNER JOIN epos_terminals as t ON e.eposId = t.id";
-      queryString = eposInitString + queryString;
-    })
-    .case(afterTime && beforeTime, () => {
-      queryString += " WHERE citizenID = '" + citizenID + "' AND timestamp BETWEEN '" +
-        afterTime + "' AND '" + beforeTime + "'";
-    })
-    .break()
-    .case(afterTime, () => {
-      queryString += " WHERE citizenID = '" + citizenID + "' AND timestamp >= '" + afterTime + "'";
-    })
-    .break()
-    .case(beforeTime, () => {
-      queryString += " WHERE citizenID = '" + citizenID + "' AND timestamp <= '" + beforeTime + "'";
-    })
-    .default(() => {
-      queryString += " WHERE citizenID = '" + citizenID + "'";
-    });
-
-  try {
-    await connection
-      .query(queryString)
-      .then(result => {
-        if (!result[0].length || !citizenID) {
-          res.json(warning);
-        } else {
-          res.json(result[0]);
-        }
-      });
-  } catch {
-    res.json(exception);
-  }
-
-};
-
-// Not done.
-const queryBankCardByCitizen = async (citizenID, res) => {
 
   // Barely any record make it to the final queries. This is due to our sample set not being large enough.
   // 6362899727 and 6488697932 work for epos.
@@ -668,17 +609,17 @@ const queryAssociates = async (citizenID, res) => {
     "SELECT c.citizenID, z.citizenID as associateID, z.forenames, z.surname FROM citizen AS c " +
     "INNER JOIN subscriber_records AS s ON c.surname = s.surname AND c.forenames = s.forenames AND c.dateOfBirth = s.dateOfBirth " +
     "INNER JOIN mobile_call_records AS m ON s.phoneNumber = m.callerMSISDN " +
-    "INNER JOIN subscriber_records AS r ON r.phoneNumber = m.recieverMSISDN " +
-    "INNER JOIN citizen AS z ON r.forenames = z.fornames AND r.surnames = z.surnames " +
-    "WHERE c.citizenID ='" + citizenID + "'";
+    "INNER JOIN subscriber_records AS r ON r.phoneNumber = m.receiverMSISDN " +
+    "INNER JOIN citizen AS z ON r.forenames = z.forenames AND r.surname = z.surname " +
+    "WHERE c.citizenID = '" + citizenID + "'";
 
   const queryInboundAssociateCalls =
     "SELECT c.citizenID, z.citizenID as associateID, z.forenames, z.surname FROM citizen AS c " +
     "INNER JOIN subscriber_records AS s ON c.surname = s.surname AND c.forenames = s.forenames AND c.dateOfBirth = s.dateOfBirth " +
     "INNER JOIN mobile_call_records AS m ON s.phoneNumber = m.callerMSISDN " +
-    "INNER JOIN subscriber_records AS r ON r.phoneNumber = m.recieverMSISDN " +
-    "INNER JOIN citizen AS z ON r.forenames = z.fornames AND r.surnames = z.surnames" +
-    "WHERE c.citizenID ='" + citizenID + "'";
+    "INNER JOIN subscriber_records AS r ON r.phoneNumber = m.receiverMSISDN " +
+    "INNER JOIN citizen AS z ON r.forenames = z.forenames AND r.surname = z.surname " +
+    "WHERE c.citizenID = '" + citizenID + "'";
 
   try {
     await connection
@@ -690,7 +631,7 @@ const queryAssociates = async (citizenID, res) => {
 
         connection
           .query(queryPossibleFamily)
-          .then(posibleFamily => {
+          .then(possibleFamily => {
 
             connection
               .query(queryOutboundAssociateCalls)
@@ -700,7 +641,7 @@ const queryAssociates = async (citizenID, res) => {
                   .query(queryInboundAssociateCalls)
                   .then(inboundAssociates => {
 
-                    if (!posibleFamily[0].length && !outboundAssociates[0].length && !inboundAssociates[0].length || !citizenID) {
+                    if (!possibleFamily[0].length && !outboundAssociates[0].length && !inboundAssociates[0].length || !citizenID) {
                       res.json(warning);
                     } else {
 
