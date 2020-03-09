@@ -137,50 +137,49 @@ const queryVehicleInfoByReg = async (vehicleRegistrationNo, res) => {
     await connection
       .query("SELECT * FROM vehicle_registrations WHERE vehicleRegistrationNo LIKE '" + vehicleRegistrationNo + "'")
       .then(veh => {
-        const toReturn = {
-          forenames: veh[0][0].forenames,
-          surname: veh[0][0].surname,
-          registrationID: veh[0][0].registrationID,
-          registrationDate: veh[0][0].registrationDate,
-          vehicleRegistrationNo: veh[0][0].vehicleRegistrationNo,
-          make: veh[0][0].make,
-          model: veh[0][0].model,
-          colour: veh[0][0].colour,
-          driverLicenceID: veh[0][0].driverLicenceID
-        };
-        res.json(toReturn);
+        connection.query("SELECT * FROM citizen WHERE forenames LIKE '" + veh[0][0].forenames + "' AND surname LIKE '" + veh[0][0].surname + "' AND dateOfBirth LIKE '" + veh[0][0].dateOfBirth + "'")
+          .then(cit => {
+            const toReturn = {
+              forenames: veh[0][0].forenames,
+              surname: veh[0][0].surname,
+              citizenID: cit[0][0].citizenID,
+              registrationID: veh[0][0].registrationID,
+              registrationDate: veh[0][0].registrationDate,
+              vehicleRegistrationNo: veh[0][0].vehicleRegistrationNo,
+              make: veh[0][0].make,
+              model: veh[0][0].model,
+              colour: veh[0][0].colour,
+              driverLicenceID: veh[0][0].driverLicenceID
+            };
+            res.json(toReturn);
+          })
       });
   } catch {
-    res.json({ exception: "No data found or incorrect input." });
+    res.json(Warning);
   }
 };
 
-// do for all in array?
 const queryANPRInfoByVehReg = async (vehicleRegistrationNo, res) => {
+  let queryString =
+    "SELECT timestamp, streetName, latitude, longitude, vehicleRegistrationNo FROM vehicle_registrations AS v " +
+    "INNER JOIN anpr_observations AS a ON v.vehicleRegistrationNo = a.vehicleRegistrationNumber " +
+    "INNER JOIN anpr_camera AS n ON a.ANPRPointId = n.anprId";
+  Cswitch()
+    .default(() => {
+      queryString += " WHERE vehicleRegistrationNo = '" + vehicleRegistrationNo + "'";
+    });
   try {
     await connection
-      .query("SELECT * FROM vehicle_registrations WHERE vehicleRegistrationNo LIKE '" + vehicleRegistrationNo + "'")
-      .then(vehicleRecord => {
-        connection
-          .query("SELECT * FROM anpr_observations WHERE vehicleRegistrationNumber LIKE '" + vehicleRecord[0][0].vehicleRegistrationNo + "'")
-          .then(anprObsRecord => {
-            connection
-              .query(
-                "SELECT * FROM anpr_camera WHERE anprId LIKE '" + anprObsRecord[0][0].ANPRPointId + "'")
-              .then(anprCamRecord => {
-                const toReturn = {
-                  timestamp: anprObsRecord[0][0].timestamp,
-                  streetName: anprCamRecord[0][0].streetName,
-                  latitude: anprCamRecord[0][0].latitude,
-                  longtitude: anprCamRecord[0][0].longitude,
-                  vehicleRegistrationNo: vehicleRegistrationNo
-                };
-                res.json(toReturn);
-              });
-          });
+      .query(queryString)
+      .then(result => {
+        if (!result[0].length || !vehicleRegistrationNo) {
+          res.json(warning);
+        } else {
+          res.json(result[0]);
+        }
       });
   } catch {
-    res.json({ exception: "No data found or incorrect input." });
+    res.json(exception);
   }
 };
 
@@ -225,7 +224,6 @@ const queryVehiclesByCitizen = async (citizenID, afterTime, beforeTime, res) => 
 
 };
 
-// Not tested.
 const queryVehiclesAll = async (latitude, longitude, radius, afterTime, beforeTime, res) => {
 
   let queryString =
