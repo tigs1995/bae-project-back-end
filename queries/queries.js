@@ -74,9 +74,9 @@ const queryCitizen = async (surname, forenames, res) => {
       "%'"
     );
     if (results[0].length) {
-      res.json(results[0]);
+      res.send(true);
     } else {
-      res.json(warning);
+      res.send(false);
     }
   } catch {
     res.json(exception);
