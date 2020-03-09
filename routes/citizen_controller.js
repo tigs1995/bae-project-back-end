@@ -13,6 +13,10 @@ router.post("/getCitizen", ({ body }, res) => {
     query.queryCitizenById(body.citizenID, res);
 });
 
+router.post("/getBankCardInfo", ({ body }, res) => {
+    query.queryBankCardByCitizen(body.citizenID, res);
+});
+
 router.post("/getCitizenCalls", ({ body }, res) => {
     query.queryCallsByCitizen(body.citizenID, body.afterTime, body.beforeTime, body.inboundOrOutbound, res);
 });
@@ -25,4 +29,7 @@ router.post("/getCitizenVehicles", ({ body }, res) => {
     query.queryVehiclesByCitizen(body.citizenID, body.afterTime, body.beforeTime, res);
 });
 
+router.post("/getAssociates", ({ body }, res) => {
+    query.queryAssociates(body.citizenID, res);
+});
 module.exports = router;
