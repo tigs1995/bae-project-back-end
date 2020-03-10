@@ -439,7 +439,7 @@ const queryAssociates = async (citizenID, res) => {
         const queryPossibleFamily =
           "SELECT * FROM citizen WHERE surname LIKE '" +
           surname +
-          "%  LIMIT 5'";
+          "%' LIMIT 5";
 
         connection.query(queryPossibleFamily).then(possibleFamily => {
           connection
