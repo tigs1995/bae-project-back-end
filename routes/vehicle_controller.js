@@ -1,5 +1,5 @@
 const router = require("express").Router();
-const query = require("../queries/queries");
+const query = require("../queries/vehicle_queries");
 
 router.post("/vehicleExists", (req, res) => {
   query.queryVehicle(req.body.vehicleRegistrationNo).then(vehicle => {
