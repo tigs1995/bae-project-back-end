@@ -41,10 +41,6 @@ class Break {
   }
 }
 
-const Cswitch = () => {
-  return new ConditionalSwitch();
-};
-
 function toKilometers(radius) {
   // Not implemented yet
   return radius;

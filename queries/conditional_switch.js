@@ -35,4 +35,8 @@ class Break {
   }
 }
 
-module.exports = { ConditionalSwitch };
+const Cswitch = () => {
+  return new ConditionalSwitch();
+};
+
+module.exports = { Cswitch };
