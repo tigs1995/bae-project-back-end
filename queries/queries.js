@@ -1,11 +1,10 @@
 const { connection } = require("../server/connect_db");
-const utm = require('utm');
+const utm = require("utm");
 
 const warning = { Warning: "No data found or incorrect input." };
 const exception = { Exception: "Unknown exception." };
 
 class ConditionalSwitch {
-
   constructor() {
     this.lastExecuted = false;
   }
@@ -57,7 +56,12 @@ function filterQueryByRadius(query, latOffset, longOffset, radius) {
   const xYOffset = utm.fromLatLon(latOffset, longOffset);
   for (let record of query) {
     let xY = utm.fromLatLon(record.latitude, record.longitude);
-    if (Math.sqrt(Math.pow(xY.easting - xYOffset.easting, 2) + Math.pow(xY.northing - xYOffset.northing, 2))) {
+    if (
+      Math.sqrt(
+        Math.pow(xY.easting - xYOffset.easting, 2) +
+          Math.pow(xY.northing - xYOffset.northing, 2)
+      )
+    ) {
       toReturn.push(record);
     }
   }
@@ -68,10 +72,10 @@ const queryCitizenExists = async (surname, forenames, res) => {
   try {
     const results = await connection.query(
       "SELECT * FROM citizen WHERE forenames LIKE '%" +
-      forenames +
-      "%' AND surname LIKE '%" +
-      surname +
-      "%'"
+        forenames +
+        "%' AND surname LIKE '%" +
+        surname +
+        "%'"
     );
     if (results[0].length) {
       res.send(true);
@@ -87,15 +91,15 @@ const queryCitizen = async (surname, forenames, res) => {
   try {
     const results = await connection.query(
       "SELECT * FROM citizen WHERE forenames LIKE '%" +
-      forenames +
-      "%' AND surname LIKE '%" +
-      surname +
-      "%'"
+        forenames +
+        "%' AND surname LIKE '%" +
+        surname +
+        "%'"
     );
     if (results[0].length) {
-      res.send(true);
+      res.send(results[0]);
     } else {
-      res.send(false);
+      res.send(results[0]);
     }
   } catch {
     res.json(exception);
@@ -110,14 +114,14 @@ const queryCitizenById = async (citizenID, res) => {
         connection
           .query(
             "SELECT * FROM vehicle_registrations WHERE forenames LIKE '" +
-            cit[0][0].forenames +
-            "'" +
-            " AND surname LIKE '" +
-            cit[0][0].surname +
-            "'" +
-            " AND dateOfBirth LIKE '" +
-            cit[0][0].dateOfBirth +
-            "'"
+              cit[0][0].forenames +
+              "'" +
+              " AND surname LIKE '" +
+              cit[0][0].surname +
+              "'" +
+              " AND dateOfBirth LIKE '" +
+              cit[0][0].dateOfBirth +
+              "'"
           )
           .then(veh => {
             for (let i of veh[0]) {
@@ -130,7 +134,10 @@ const queryCitizenById = async (citizenID, res) => {
               dateOfBirth: cit[0][0].dateOfBirth,
               streetName: cit[0][0].streetName.substring(4),
               city: cit[0][0].city.substring(1),
-              postcode: cit[0][0].postcode.substring(1, cit[0][0].postcode.length - 1),
+              postcode: cit[0][0].postcode.substring(
+                1,
+                cit[0][0].postcode.length - 1
+              ),
               placeOfBirth: cit[0][0].placeOfBirth,
               vehicleRegistrations: veh[0]
             };
@@ -145,8 +152,8 @@ const queryCitizenById = async (citizenID, res) => {
 const queryVehicle = async vehicleRegistrationNo => {
   const results = await connection.query(
     "SELECT * FROM vehicle_registrations WHERE vehicleRegistrationNo like '%" +
-    vehicleRegistrationNo +
-    "%'"
+      vehicleRegistrationNo +
+      "%'"
   );
   return results[0];
 };
@@ -154,9 +161,22 @@ const queryVehicle = async vehicleRegistrationNo => {
 const queryVehicleInfoByReg = async (vehicleRegistrationNo, res) => {
   try {
     await connection
-      .query("SELECT * FROM vehicle_registrations WHERE vehicleRegistrationNo LIKE '" + vehicleRegistrationNo + "'")
+      .query(
+        "SELECT * FROM vehicle_registrations WHERE vehicleRegistrationNo LIKE '" +
+          vehicleRegistrationNo +
+          "'"
+      )
       .then(veh => {
-        connection.query("SELECT * FROM citizen WHERE forenames LIKE '" + veh[0][0].forenames + "' AND surname LIKE '" + veh[0][0].surname + "' AND dateOfBirth LIKE '" + veh[0][0].dateOfBirth + "'")
+        connection
+          .query(
+            "SELECT * FROM citizen WHERE forenames LIKE '" +
+              veh[0][0].forenames +
+              "' AND surname LIKE '" +
+              veh[0][0].surname +
+              "' AND dateOfBirth LIKE '" +
+              veh[0][0].dateOfBirth +
+              "'"
+          )
           .then(cit => {
             const toReturn = {
               forenames: veh[0][0].forenames,
@@ -171,7 +191,7 @@ const queryVehicleInfoByReg = async (vehicleRegistrationNo, res) => {
               driverLicenceID: veh[0][0].driverLicenceID
             };
             res.json(toReturn);
-          })
+          });
       });
   } catch {
     res.json(Warning);
@@ -183,20 +203,18 @@ const queryANPRInfoByVehReg = async (vehicleRegistrationNo, res) => {
     "SELECT timestamp, streetName, latitude, longitude, vehicleRegistrationNo FROM vehicle_registrations AS v " +
     "INNER JOIN anpr_observations AS a ON v.vehicleRegistrationNo = a.vehicleRegistrationNumber " +
     "INNER JOIN anpr_camera AS n ON a.ANPRPointId = n.anprId";
-  Cswitch()
-    .default(() => {
-      queryString += " WHERE vehicleRegistrationNo = '" + vehicleRegistrationNo + "'";
-    });
+  Cswitch().default(() => {
+    queryString +=
+      " WHERE vehicleRegistrationNo = '" + vehicleRegistrationNo + "'";
+  });
   try {
-    await connection
-      .query(queryString)
-      .then(result => {
-        if (!result[0].length || !vehicleRegistrationNo) {
-          res.json(warning);
-        } else {
-          res.json(result[0]);
-        }
-      });
+    await connection.query(queryString).then(result => {
+      if (!result[0].length || !vehicleRegistrationNo) {
+        res.json(warning);
+      } else {
+        res.json(result[0]);
+      }
+    });
   } catch {
     res.json(exception);
   }
@@ -207,26 +225,28 @@ const queryBankCardByCitizen = async (citizenID, res) => {
     "SELECT bankCardId, cardNumber, sortCode, b.bankAccountId, b.accountNumber, b.bank, c.forenames, c.surname, c.dateOfBirth FROM citizen AS c " +
     "INNER JOIN bank_account_holders AS b ON c.forenames = b.forenames and c.surname = b.surname and c.dateOfBirth = b.dateOfBirth " +
     "INNER JOIN bank_card AS n ON b.bankAccountId = n.bankAccountId";
-  Cswitch()
-    .default(() => {
-      queryString += " WHERE citizenID = '" + citizenID + "'";
-    });
+  Cswitch().default(() => {
+    queryString += " WHERE citizenID = '" + citizenID + "'";
+  });
   try {
-    await connection
-      .query(queryString)
-      .then(result => {
-        if (!result[0].length || !citizenID) {
-          res.json(warning);
-        } else {
-          res.json(result[0]);
-        }
-      });
+    await connection.query(queryString).then(result => {
+      if (!result[0].length || !citizenID) {
+        res.json(warning);
+      } else {
+        res.json(result[0]);
+      }
+    });
   } catch {
     res.json(exception);
   }
 };
 
-const queryVehiclesByCitizen = async (citizenID, afterTime, beforeTime, res) => {
+const queryVehiclesByCitizen = async (
+  citizenID,
+  afterTime,
+  beforeTime,
+  res
+) => {
   // 8728766559 works.
   let queryString =
     "SELECT citizenID, c.forenames, c.surname, vehicleRegistrationNo, timestamp, latitude, longitude FROM citizen AS c " +
@@ -236,39 +256,58 @@ const queryVehiclesByCitizen = async (citizenID, afterTime, beforeTime, res) => 
 
   Cswitch()
     .case(afterTime && beforeTime, () => {
-      queryString += " WHERE citizenID = '" + citizenID + "' AND timestamp BETWEEN '" +
-        afterTime + "' AND '" + beforeTime + "'";
+      queryString +=
+        " WHERE citizenID = '" +
+        citizenID +
+        "' AND timestamp BETWEEN '" +
+        afterTime +
+        "' AND '" +
+        beforeTime +
+        "'";
     })
     .break()
     .case(afterTime, () => {
-      queryString += " WHERE citizenID = '" + citizenID + "' AND timestamp >= '" + afterTime + "'";
+      queryString +=
+        " WHERE citizenID = '" +
+        citizenID +
+        "' AND timestamp >= '" +
+        afterTime +
+        "'";
     })
     .break()
     .case(beforeTime, () => {
-      queryString += " WHERE citizenID = '" + citizenID + "' AND timestamp <= '" + beforeTime + "'";
+      queryString +=
+        " WHERE citizenID = '" +
+        citizenID +
+        "' AND timestamp <= '" +
+        beforeTime +
+        "'";
     })
     .default(() => {
       queryString += " WHERE citizenID = '" + citizenID + "'";
     });
 
   try {
-    await connection
-      .query(queryString)
-      .then(result => {
-        if (!result[0].length || !citizenID) {
-          res.json(warning);
-        } else {
-          res.json(result[0]);
-        }
-      });
+    await connection.query(queryString).then(result => {
+      if (!result[0].length || !citizenID) {
+        res.json(warning);
+      } else {
+        res.json(result[0]);
+      }
+    });
   } catch {
     res.json(exception);
   }
-
 };
 
-const queryVehiclesAll = async (latitude, longitude, radius, afterTime, beforeTime, res) => {
-
+const queryVehiclesAll = async (
+  latitude,
+  longitude,
+  radius,
+  afterTime,
+  beforeTime,
+  res
+) => {
   let queryString =
     "SELECT citizenID, c.forenames, c.surname, vehicleRegistrationNo, timestamp, latitude, longitude FROM citizen AS c " +
     "INNER JOIN vehicle_registrations AS v ON c.surname = v.surname AND c.forenames = v.forenames AND c.dateOfBirth = v.dateOfBirth " +
@@ -277,8 +316,8 @@ const queryVehiclesAll = async (latitude, longitude, radius, afterTime, beforeTi
 
   Cswitch()
     .case(afterTime && beforeTime, () => {
-      queryString += " WHERE timestamp BETWEEN '" +
-        afterTime + "' AND '" + beforeTime + "'";
+      queryString +=
+        " WHERE timestamp BETWEEN '" + afterTime + "' AND '" + beforeTime + "'";
     })
     .break()
     .case(afterTime, () => {
@@ -290,24 +329,31 @@ const queryVehiclesAll = async (latitude, longitude, radius, afterTime, beforeTi
     });
 
   try {
-    await connection
-      .query(queryString)
-      .then(result => {
-        const toSend = filterQueryByRadius(result[0], latitude, longitude, radius);
-        if (!toSend.length) {
-          res.json(warning);
-        } else {
-          res.json(toSend);
-        }
-      });
+    await connection.query(queryString).then(result => {
+      const toSend = filterQueryByRadius(
+        result[0],
+        latitude,
+        longitude,
+        radius
+      );
+      if (!toSend.length) {
+        res.json(warning);
+      } else {
+        res.json(toSend);
+      }
+    });
   } catch {
     res.json(exception);
   }
-
 };
 
-const queryFinancialsByCitizen = async (citizenID, afterTime, beforeTime, eposOrAtm, res) => {
-
+const queryFinancialsByCitizen = async (
+  citizenID,
+  afterTime,
+  beforeTime,
+  eposOrAtm,
+  res
+) => {
   // Barely any record make it to the final queries. This is due to our sample set not being large enough.
   // 6362899727 and 6488697932 work for epos.
   // None work for atm. Perhaps mock it?
@@ -321,21 +367,23 @@ const queryFinancialsByCitizen = async (citizenID, afterTime, beforeTime, eposOr
     atm = true;
   }
 
-  const atmInitString = "SELECT citizenID, c.forenames, c.surname, k.cardNumber, a.timestamp, latitude, longitude, amount FROM citizen AS c ";
+  const atmInitString =
+    "SELECT citizenID, c.forenames, c.surname, k.cardNumber, a.timestamp, latitude, longitude, amount FROM citizen AS c ";
 
-  // INNER JOIN bank_account_holders AS b ON c.surname = b.surname AND c.forenames = b.forenames AND c.dateOfBirth = b.dateOfBirth 
-  // INNER JOIN bank_cards AS k ON b.bankAccountId = k.bankAccountId 
-  // INNER JOIN epos_transactions AS e on e.bankCardNumber = k.cardNumber 
-  // INNER JOIN atm_transactions AS a ON a.bankCardNumber = e.bankCardNumber 
+  // INNER JOIN bank_account_holders AS b ON c.surname = b.surname AND c.forenames = b.forenames AND c.dateOfBirth = b.dateOfBirth
+  // INNER JOIN bank_cards AS k ON b.bankAccountId = k.bankAccountId
+  // INNER JOIN epos_transactions AS e on e.bankCardNumber = k.cardNumber
+  // INNER JOIN atm_transactions AS a ON a.bankCardNumber = e.bankCardNumber
   // INNER JOIN atm_point as p ON p.atmId = a.atmId
   // LIMIT 5;
 
-  const eposInitString = "SELECT citizenID, c.forenames, c.surname, k.cardNumber, e.timestamp, latitude, longitude FROM citizen AS c ";
+  const eposInitString =
+    "SELECT citizenID, c.forenames, c.surname, k.cardNumber, e.timestamp, latitude, longitude FROM citizen AS c ";
 
-  // SELECT citizenID, c.forenames, c.surname, k.cardNumber, e.timestamp, latitude, longitude FROM citizen AS c 
-  // INNER JOIN bank_account_holders AS b ON c.surname = b.surname AND c.forenames = b.forenames AND c.dateOfBirth = b.dateOfBirth 
-  // INNER JOIN bank_cards AS k ON b.bankAccountId = k.bankAccountId 
-  // INNER JOIN epos_transactions AS e on e.bankCardNumber = k.cardNumber 
+  // SELECT citizenID, c.forenames, c.surname, k.cardNumber, e.timestamp, latitude, longitude FROM citizen AS c
+  // INNER JOIN bank_account_holders AS b ON c.surname = b.surname AND c.forenames = b.forenames AND c.dateOfBirth = b.dateOfBirth
+  // INNER JOIN bank_cards AS k ON b.bankAccountId = k.bankAccountId
+  // INNER JOIN epos_transactions AS e on e.bankCardNumber = k.cardNumber
   // INNER JOIN epos_terminals as t ON e.eposId = t.id
   // LIMIT 5;
 
@@ -352,45 +400,64 @@ const queryFinancialsByCitizen = async (citizenID, afterTime, beforeTime, eposOr
       queryString = atmInitString + queryString;
     })
     .case(epos, () => {
-      queryString +=
-        "INNER JOIN epos_terminals as t ON e.eposId = t.id";
+      queryString += "INNER JOIN epos_terminals as t ON e.eposId = t.id";
       queryString = eposInitString + queryString;
     })
     .case(afterTime && beforeTime, () => {
-      queryString += " WHERE citizenID = '" + citizenID + "' AND timestamp BETWEEN '" +
-        afterTime + "' AND '" + beforeTime + "'";
+      queryString +=
+        " WHERE citizenID = '" +
+        citizenID +
+        "' AND timestamp BETWEEN '" +
+        afterTime +
+        "' AND '" +
+        beforeTime +
+        "'";
     })
     .break()
     .case(afterTime, () => {
-      queryString += " WHERE citizenID = '" + citizenID + "' AND timestamp >= '" + afterTime + "'";
+      queryString +=
+        " WHERE citizenID = '" +
+        citizenID +
+        "' AND timestamp >= '" +
+        afterTime +
+        "'";
     })
     .break()
     .case(beforeTime, () => {
-      queryString += " WHERE citizenID = '" + citizenID + "' AND timestamp <= '" + beforeTime + "'";
+      queryString +=
+        " WHERE citizenID = '" +
+        citizenID +
+        "' AND timestamp <= '" +
+        beforeTime +
+        "'";
     })
     .default(() => {
       queryString += " WHERE citizenID = '" + citizenID + "'";
     });
 
   try {
-    await connection
-      .query(queryString)
-      .then(result => {
-        if (!result[0].length || !citizenID) {
-          res.json(warning);
-        } else {
-          res.json(result[0]);
-        }
-      });
+    await connection.query(queryString).then(result => {
+      if (!result[0].length || !citizenID) {
+        res.json(warning);
+      } else {
+        res.json(result[0]);
+      }
+    });
   } catch {
     res.json(exception);
   }
-
 };
 
 // Not tested.
-const queryFinancialsAll = async (latitude, longitude, radius, afterTime, beforeTime, eposOrAtm, res) => {
-
+const queryFinancialsAll = async (
+  latitude,
+  longitude,
+  radius,
+  afterTime,
+  beforeTime,
+  eposOrAtm,
+  res
+) => {
   // make nested
   let epos = false;
   let atm = false;
@@ -400,21 +467,23 @@ const queryFinancialsAll = async (latitude, longitude, radius, afterTime, before
     atm = true;
   }
 
-  const atmInitString = "SELECT citizenID, c.forenames, c.surname, k.cardNumber, a.timestamp, latitude, longitude, amount FROM citizen AS c ";
+  const atmInitString =
+    "SELECT citizenID, c.forenames, c.surname, k.cardNumber, a.timestamp, latitude, longitude, amount FROM citizen AS c ";
 
-  // INNER JOIN bank_account_holders AS b ON c.surname = b.surname AND c.forenames = b.forenames AND c.dateOfBirth = b.dateOfBirth 
-  // INNER JOIN bank_cards AS k ON b.bankAccountId = k.bankAccountId 
-  // INNER JOIN epos_transactions AS e on e.bankCardNumber = k.cardNumber 
-  // INNER JOIN atm_transactions AS a ON a.bankCardNumber = e.bankCardNumber 
+  // INNER JOIN bank_account_holders AS b ON c.surname = b.surname AND c.forenames = b.forenames AND c.dateOfBirth = b.dateOfBirth
+  // INNER JOIN bank_cards AS k ON b.bankAccountId = k.bankAccountId
+  // INNER JOIN epos_transactions AS e on e.bankCardNumber = k.cardNumber
+  // INNER JOIN atm_transactions AS a ON a.bankCardNumber = e.bankCardNumber
   // INNER JOIN atm_point as p ON p.atmId = a.atmId
   // LIMIT 5;
 
-  const eposInitString = "SELECT citizenID, c.forenames, c.surname, k.cardNumber, e.timestamp, latitude, longitude FROM citizen AS c ";
+  const eposInitString =
+    "SELECT citizenID, c.forenames, c.surname, k.cardNumber, e.timestamp, latitude, longitude FROM citizen AS c ";
 
-  // SELECT citizenID, c.forenames, c.surname, k.cardNumber, e.timestamp, latitude, longitude FROM citizen AS c 
-  // INNER JOIN bank_account_holders AS b ON c.surname = b.surname AND c.forenames = b.forenames AND c.dateOfBirth = b.dateOfBirth 
-  // INNER JOIN bank_cards AS k ON b.bankAccountId = k.bankAccountId 
-  // INNER JOIN epos_transactions AS e on e.bankCardNumber = k.cardNumber 
+  // SELECT citizenID, c.forenames, c.surname, k.cardNumber, e.timestamp, latitude, longitude FROM citizen AS c
+  // INNER JOIN bank_account_holders AS b ON c.surname = b.surname AND c.forenames = b.forenames AND c.dateOfBirth = b.dateOfBirth
+  // INNER JOIN bank_cards AS k ON b.bankAccountId = k.bankAccountId
+  // INNER JOIN epos_transactions AS e on e.bankCardNumber = k.cardNumber
   // INNER JOIN epos_terminals as t ON e.eposId = t.id
   // LIMIT 5;
 
@@ -431,13 +500,12 @@ const queryFinancialsAll = async (latitude, longitude, radius, afterTime, before
       queryString = atmInitString + queryString;
     })
     .case(epos, () => {
-      queryString +=
-        "INNER JOIN epos_terminals as t ON e.eposId = t.id";
+      queryString += "INNER JOIN epos_terminals as t ON e.eposId = t.id";
       queryString = eposInitString + queryString;
     })
     .case(afterTime && beforeTime, () => {
-      queryString += " WHERE timestamp BETWEEN '" +
-        afterTime + "' AND '" + beforeTime + "'";
+      queryString +=
+        " WHERE timestamp BETWEEN '" + afterTime + "' AND '" + beforeTime + "'";
     })
     .break()
     .case(afterTime, () => {
@@ -446,28 +514,35 @@ const queryFinancialsAll = async (latitude, longitude, radius, afterTime, before
     .break()
     .case(beforeTime, () => {
       queryString += " WHERE timestamp <= '" + beforeTime + "'";
-    })
+    });
 
   try {
-    await connection
-      .query(queryString)
-      .then(result => {
-        const toSend = filterQueryByRadius(result[0], latitude, longitude, radius);
-        if (!toSend.length) {
-          res.json(warning);
-        } else {
-          res.json(toSend);
-        }
-      });
+    await connection.query(queryString).then(result => {
+      const toSend = filterQueryByRadius(
+        result[0],
+        latitude,
+        longitude,
+        radius
+      );
+      if (!toSend.length) {
+        res.json(warning);
+      } else {
+        res.json(toSend);
+      }
+    });
   } catch {
     res.json(exception);
   }
-
 };
 
 // Not tested.
-const queryCallsByCitizen = async (citizenID, afterTime, beforeTime, inboundOrOutbound, res) => {
-
+const queryCallsByCitizen = async (
+  citizenID,
+  afterTime,
+  beforeTime,
+  inboundOrOutbound,
+  res
+) => {
   // make nested
   let inbound = false;
   let outbound = false;
@@ -486,12 +561,12 @@ const queryCallsByCitizen = async (citizenID, afterTime, beforeTime, inboundOrOu
     "INNER JOIN cell_tower AS t ON m.callCellTowerId = t.cellTowerId " +
     "INNER JOIN subscriber_records as r ON r.phoneNumber = m.receiverMSISDN";
 
-  // SELECT receiverMSISDN, s.network, timestamp, latitude AS callerLatitude, longitude AS callerLongitude, 
-  // r.forenames AS receiverForenames, r.surname AS receiverSurname 
-  // FROM citizen AS c 
-  // INNER JOIN subscriber_records AS s ON c.surname = s.surname AND c.forenames = s.forenames AND c.dateOfBirth = s.dateOfBirth 
-  // INNER JOIN mobile_call_records AS m ON s.phoneNumber = m.callerMSISDN 
-  // INNER JOIN cell_tower AS t ON m.callCellTowerId = t.cellTowerId 
+  // SELECT receiverMSISDN, s.network, timestamp, latitude AS callerLatitude, longitude AS callerLongitude,
+  // r.forenames AS receiverForenames, r.surname AS receiverSurname
+  // FROM citizen AS c
+  // INNER JOIN subscriber_records AS s ON c.surname = s.surname AND c.forenames = s.forenames AND c.dateOfBirth = s.dateOfBirth
+  // INNER JOIN mobile_call_records AS m ON s.phoneNumber = m.callerMSISDN
+  // INNER JOIN cell_tower AS t ON m.callCellTowerId = t.cellTowerId
   // INNER JOIN subscriber_records as r ON r.phoneNumber = m.receiverMSISDN;
 
   // 6724774958 works
@@ -521,40 +596,60 @@ const queryCallsByCitizen = async (citizenID, afterTime, beforeTime, inboundOrOu
       queryString = queryOutbound;
     })
     .case(afterTime && beforeTime, () => {
-      queryString += " WHERE citizenID = '" + citizenID + "' AND timestamp BETWEEN '" +
-        afterTime + "' AND '" + beforeTime + "'";
+      queryString +=
+        " WHERE citizenID = '" +
+        citizenID +
+        "' AND timestamp BETWEEN '" +
+        afterTime +
+        "' AND '" +
+        beforeTime +
+        "'";
     })
     .break()
     .case(afterTime, () => {
-      queryString += " WHERE citizenID = '" + citizenID + "' AND timestamp >= '" + afterTime + "'";
+      queryString +=
+        " WHERE citizenID = '" +
+        citizenID +
+        "' AND timestamp >= '" +
+        afterTime +
+        "'";
     })
     .break()
     .case(beforeTime, () => {
-      queryString += " WHERE citizenID = '" + citizenID + "' AND timestamp <= '" + beforeTime + "'";
+      queryString +=
+        " WHERE citizenID = '" +
+        citizenID +
+        "' AND timestamp <= '" +
+        beforeTime +
+        "'";
     })
     .default(() => {
       queryString += " WHERE citizenID = '" + citizenID + "'";
     });
 
   try {
-    await connection
-      .query(queryString)
-      .then(result => {
-        if (!result[0].length || !citizenID) {
-          res.json(warning);
-        } else {
-          res.json(result[0]);
-        }
-      });
+    await connection.query(queryString).then(result => {
+      if (!result[0].length || !citizenID) {
+        res.json(warning);
+      } else {
+        res.json(result[0]);
+      }
+    });
   } catch {
     res.json(exception);
   }
-
 };
 
 // Not tested.
-const queryCallsAll = async (latitude, longitude, radius, afterTime, beforeTime, inboundOrOutbound, res) => {
-
+const queryCallsAll = async (
+  latitude,
+  longitude,
+  radius,
+  afterTime,
+  beforeTime,
+  inboundOrOutbound,
+  res
+) => {
   // make nested
   let [inbound, outbound] = false;
   if (inboundOrOutbound == "inbound") {
@@ -589,48 +684,67 @@ const queryCallsAll = async (latitude, longitude, radius, afterTime, beforeTime,
       queryString = queryOutbound;
     })
     .case(afterTime && beforeTime, () => {
-      queryString += " WHERE citizenID = '" + citizenID + "' AND timestamp BETWEEN '" +
-        afterTime + "' AND '" + beforeTime + "'";
+      queryString +=
+        " WHERE citizenID = '" +
+        citizenID +
+        "' AND timestamp BETWEEN '" +
+        afterTime +
+        "' AND '" +
+        beforeTime +
+        "'";
     })
     .break()
     .case(afterTime, () => {
-      queryString += " WHERE citizenID = '" + citizenID + "' AND timestamp >= '" + afterTime + "'";
+      queryString +=
+        " WHERE citizenID = '" +
+        citizenID +
+        "' AND timestamp >= '" +
+        afterTime +
+        "'";
     })
     .break()
     .case(beforeTime, () => {
-      queryString += " WHERE citizenID = '" + citizenID + "' AND timestamp <= '" + beforeTime + "'";
+      queryString +=
+        " WHERE citizenID = '" +
+        citizenID +
+        "' AND timestamp <= '" +
+        beforeTime +
+        "'";
     })
     .default(() => {
       queryString += " WHERE citizenID = '" + citizenID + "'";
     });
 
   try {
-    await connection
-      .query(queryString)
-      .then(result => {
-        const toSend = filterQueryByRadius(result[0], latitude, longitude, radius);
-        if (!toSend.length) {
-          res.json(warning);
-        } else {
-          res.json(toSend);
-        }
-      });
+    await connection.query(queryString).then(result => {
+      const toSend = filterQueryByRadius(
+        result[0],
+        latitude,
+        longitude,
+        radius
+      );
+      if (!toSend.length) {
+        res.json(warning);
+      } else {
+        res.json(toSend);
+      }
+    });
   } catch {
     res.json(exception);
   }
-
 };
 
 // Not tested.
 const queryAssociates = async (citizenID, res) => {
-
   const queryOutboundAssociateCalls =
     "SELECT c.citizenID, z.citizenID as associateID, z.forenames, z.surname FROM citizen AS c " +
     "INNER JOIN subscriber_records AS s ON c.surname = s.surname AND c.forenames = s.forenames AND c.dateOfBirth = s.dateOfBirth " +
     "INNER JOIN mobile_call_records AS m ON s.phoneNumber = m.callerMSISDN " +
     "INNER JOIN subscriber_records AS r ON r.phoneNumber = m.receiverMSISDN " +
     "INNER JOIN citizen AS z ON r.forenames = z.forenames AND r.surname = z.surname " +
-    "WHERE c.citizenID = '" + citizenID + "'";
+    "WHERE c.citizenID = '" +
+    citizenID +
+    "'";
 
   const queryInboundAssociateCalls =
     "SELECT c.citizenID, z.citizenID as associateID, z.forenames, z.surname FROM citizen AS c " +
@@ -638,48 +752,48 @@ const queryAssociates = async (citizenID, res) => {
     "INNER JOIN mobile_call_records AS m ON s.phoneNumber = m.callerMSISDN " +
     "INNER JOIN subscriber_records AS r ON r.phoneNumber = m.receiverMSISDN " +
     "INNER JOIN citizen AS z ON r.forenames = z.forenames AND r.surname = z.surname " +
-    "WHERE c.citizenID = '" + citizenID + "'";
+    "WHERE c.citizenID = '" +
+    citizenID +
+    "'";
 
   try {
     await connection
       .query("SELECT * FROM citizen WHERE citizenID LIKE '" + citizenID + "'")
       .then(cit => {
-
         const surname = cit[0][0].surname;
-        const queryPossibleFamily = "SELECT * FROM citizen WHERE surname LIKE '" + surname + "%'";
+        const queryPossibleFamily =
+          "SELECT * FROM citizen WHERE surname LIKE '" + surname + "%'";
 
-        connection
-          .query(queryPossibleFamily)
-          .then(possibleFamily => {
+        connection.query(queryPossibleFamily).then(possibleFamily => {
+          connection
+            .query(queryOutboundAssociateCalls)
+            .then(outboundAssociates => {
+              connection
+                .query(queryInboundAssociateCalls)
+                .then(inboundAssociates => {
+                  if (
+                    (!possibleFamily[0].length &&
+                      !outboundAssociates[0].length &&
+                      !inboundAssociates[0].length) ||
+                    !citizenID
+                  ) {
+                    res.json(warning);
+                  } else {
+                    const toReturn = {
+                      inboundCallAssociates: inboundAssociates,
+                      outboundCallAssociates: outboundAssociates,
+                      possibleFamily: possibleFamily
+                    };
 
-            connection
-              .query(queryOutboundAssociateCalls)
-              .then(outboundAssociates => {
-
-                connection
-                  .query(queryInboundAssociateCalls)
-                  .then(inboundAssociates => {
-
-                    if (!possibleFamily[0].length && !outboundAssociates[0].length && !inboundAssociates[0].length || !citizenID) {
-                      res.json(warning);
-                    } else {
-
-                      const toReturn = {
-                        inboundCallAssociates: inboundAssociates,
-                        outboundCallAssociates: outboundAssociates,
-                        possibleFamily: possibleFamily
-                      };
-
-                      res.json(toReturn);
-                    }
-                  })
-              })
-          })
+                    res.json(toReturn);
+                  }
+                });
+            });
+        });
       });
   } catch {
     res.json(exception);
   }
-
 };
 
 module.exports = {
