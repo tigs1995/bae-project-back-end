@@ -2,7 +2,7 @@ const router = require("express").Router();
 const query = require("../queries/queries");
 
 router.post("/citizenExists", (req, res) => {
-    query.queryCitizen(req.body.surname, req.body.forenames, res);
+    query.queryCitizenExists(req.body.surname, req.body.forenames, res);
 });
 
 router.post("/citizenList", (req, res) => {
