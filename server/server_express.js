@@ -1,7 +1,7 @@
 const app = require("express")();
 const db = require("./connect_db");
 
-const port = 8080;
+const port = 8081;
 
 const login_controller = require("../routes/login_controller");
 const citizen_controller = require("../routes/citizen_controller");
