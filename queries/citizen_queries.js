@@ -1,7 +1,6 @@
 const { connection } = require("../server/connect_db");
 const utm = require("utm");
 
-
 const warning = { Warning: "No data found or incorrect input." };
 const exception = { Exception: "Unknown exception." };
 class ConditionalSwitch {
@@ -420,7 +419,7 @@ const queryAssociates = async (citizenID, res) => {
     "INNER JOIN citizen AS z ON r.forenames = z.forenames AND r.surname = z.surname " +
     "WHERE c.citizenID = '" +
     citizenID +
-    "'";
+    "LIMIT 5'";
 
   const queryInboundAssociateCalls =
     "SELECT c.citizenID, z.citizenID as associateID, z.forenames, z.surname FROM citizen AS c " +
@@ -430,7 +429,7 @@ const queryAssociates = async (citizenID, res) => {
     "INNER JOIN citizen AS z ON r.forenames = z.forenames AND r.surname = z.surname " +
     "WHERE c.citizenID = '" +
     citizenID +
-    "'";
+    " LIMIT 5'";
 
   try {
     await connection
