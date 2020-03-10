@@ -64,6 +64,25 @@ function filterQueryByRadius(query, latOffset, longOffset, radius) {
   return toReturn;
 }
 
+const queryCitizenExists = async (surname, forenames, res) => {
+  try {
+    const results = await connection.query(
+      "SELECT * FROM citizen WHERE forenames LIKE '%" +
+      forenames +
+      "%' AND surname LIKE '%" +
+      surname +
+      "%'"
+    );
+    if (results[0].length) {
+      res.send(true);
+    } else {
+      res.send(false);
+    }
+  } catch {
+    res.json(exception);
+  }
+};
+
 const queryCitizen = async (surname, forenames, res) => {
   try {
     const results = await connection.query(
@@ -665,6 +684,7 @@ const queryAssociates = async (citizenID, res) => {
 
 module.exports = {
   queryCitizen,
+  queryCitizenExists,
   queryVehicle,
   queryCitizenById,
   queryVehicleInfoByReg,
