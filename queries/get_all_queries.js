@@ -40,6 +40,34 @@ class Break {
   }
 }
 
+function getDistanceFromLatLonInKm(lat1, lon1, lat2, lon2) {
+  var R = 6371; // Radius of the earth in km
+  var dLat = deg2rad(lat2 - lat1);  // deg2rad below
+  var dLon = deg2rad(lon2 - lon1);
+  var a =
+    Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+    Math.cos(deg2rad(lat1)) * Math.cos(deg2rad(lat2)) *
+    Math.sin(dLon / 2) * Math.sin(dLon / 2)
+    ;
+  var c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+  var d = R * c; // Distance in km
+  return d;
+}
+
+function deg2rad(deg) {
+  return deg * (Math.PI / 180)
+}
+
+function filterQueryByRadius(query, latOffset, longOffset, radius) {
+  toReturn = [];
+  for (let record of query) {
+    const r = getDistanceFromLatLonInKm(latOffset, longOffset, record.latitude, record.longitude)
+    if (r <= radius) {
+      toReturn.push(record);
+    }
+  }
+  return toReturn;
+}
 
 const Cswitch = () => {
   return new ConditionalSwitch();
@@ -54,10 +82,8 @@ const queryVehiclesAll = async (
   res
 ) => {
   let queryString =
-    "SELECT citizenID, c.forenames, c.surname, vehicleRegistrationNo, timestamp, latitude, longitude FROM citizen AS c " +
-    "INNER JOIN vehicle_registrations AS v ON c.surname = v.surname AND c.forenames = v.forenames AND c.dateOfBirth = v.dateOfBirth " +
-    "INNER JOIN anpr_observations AS a ON v.vehicleRegistrationNo = a.vehicleRegistrationNumber " +
-    "INNER JOIN anpr_camera AS n ON a.ANPRPointId = n.anprId";
+    "SELECT * FROM anpr_camera as cam " +
+    "INNER JOIN anpr_observations AS obs ON cam.anprId = obs.ANPRPointId";
 
   Cswitch()
     .case(afterTime && beforeTime, () => {
@@ -111,7 +137,7 @@ const queryFinancialsAll = async (
   }
 
   const atmInitString =
-    "SELECT citizenID, c.forenames, c.surname, k.cardNumber, a.timestamp, latitude, longitude, amount FROM citizen AS c ";
+    "SELECT k.cardNumber, a.timestamp, latitude, longitude, amount FROM bank_card AS k ";
 
   // INNER JOIN bank_account_holders AS b ON c.surname = b.surname AND c.forenames = b.forenames AND c.dateOfBirth = b.dateOfBirth
   // INNER JOIN bank_cards AS k ON b.bankAccountId = k.bankAccountId
@@ -121,7 +147,7 @@ const queryFinancialsAll = async (
   // LIMIT 5;
 
   const eposInitString =
-    "SELECT citizenID, c.forenames, c.surname, k.cardNumber, e.timestamp, latitude, longitude FROM citizen AS c ";
+    "SELECT k.cardNumber, timestamp, latitude, longitude FROM bank_card AS k ";
 
   // SELECT citizenID, c.forenames, c.surname, k.cardNumber, e.timestamp, latitude, longitude FROM citizen AS c
   // INNER JOIN bank_account_holders AS b ON c.surname = b.surname AND c.forenames = b.forenames AND c.dateOfBirth = b.dateOfBirth
@@ -131,8 +157,6 @@ const queryFinancialsAll = async (
   // LIMIT 5;
 
   let queryString =
-    "INNER JOIN bank_account_holders AS b ON c.surname = b.surname AND c.forenames = b.forenames AND c.dateOfBirth = b.dateOfBirth " +
-    "INNER JOIN bank_cards AS k ON b.bankAccountId = k.bankAccountId " +
     "INNER JOIN epos_transactions AS e on e.bankCardNumber = k.cardNumber ";
 
   Cswitch()
@@ -188,30 +212,23 @@ const queryCallsAll = async (
   res
 ) => {
   // make nested
-  let [inbound, outbound] = false;
+  let inbound = false;
+  let outbound = false;
   if (inboundOrOutbound == "inbound") {
     inbound = true;
   } else if (inboundOrOutbound == "outbound") {
     outbound = true;
   }
 
-  let queryOutbound =
-    "SELECT recieverMSISDN, network, timestamp, latitude, longitude, " +
-    "r.forenames AS recieverForenames, r.surname AS recieverSurname FROM citizen AS c " +
-    "INNER JOIN subscriber_records AS s ON c.surname = s.surname AND c.forenames = s.forenames AND c.dateOfBirth = s.dateOfBirth " +
-    "INNER JOIN mobile_call_records AS m ON s.phoneNumber = m.callerMSISDN " +
-    "INNER JOIN cell_towers AS t ON m.cellTowerId = t.cellTowerId " +
-    "INNER JOIN subscriber_records as r ON r.phoneNumber = m.recieverMSISDN";
-
   let queryInbound =
-    "SELECT r.forenames AS callerForenames, r.surname AS callerSurname, " +
-    "callerMSISDN, network, timestamp, latitude, longitude FROM citizen AS c " +
-    "INNER JOIN subscriber_records AS s ON c.surname = s.surname AND c.forenames = s.forenames AND c.dateOfBirth = s.dateOfBirth " +
-    "INNER JOIN mobile_call_records AS m ON s.phoneNumber = m.reciever " +
-    "INNER JOIN cell_towers AS t ON m.cellTowerId = t.cellTowerId" +
-    "INNER JOIN subscriber_records as r ON r.phoneNumber = m.callerMSISDN";
+    "SELECT callerMSISDN, receiverMSISDN, timestamp, latitude, longitude " +
+    "FROM mobile_call_records AS m " +
+    "INNER JOIN cell_tower AS t ON t.cellTowerId = m.callCellTowerId";
 
-  let queryString;
+  let queryOutbound =
+    "SELECT callerMSISDN, receiverMSISDN, timestamp, latitude, longitude " +
+    "FROM mobile_call_records AS m " +
+    "INNER JOIN cell_tower AS t ON t.cellTowerId = m.receiverTowerId";
 
   Cswitch()
     .case(inbound, () => {
@@ -222,53 +239,34 @@ const queryCallsAll = async (
     })
     .case(afterTime && beforeTime, () => {
       queryString +=
-        " WHERE citizenID = '" +
-        citizenID +
-        "' AND timestamp BETWEEN '" +
-        afterTime +
-        "' AND '" +
-        beforeTime +
-        "'";
+        " WHERE timestamp BETWEEN '" + afterTime + "' AND '" + beforeTime + "'";
     })
     .break()
     .case(afterTime, () => {
-      queryString +=
-        " WHERE citizenID = '" +
-        citizenID +
-        "' AND timestamp >= '" +
-        afterTime +
-        "'";
+      queryString += " WHERE timestamp >= '" + afterTime + "'";
     })
     .break()
     .case(beforeTime, () => {
-      queryString +=
-        " WHERE citizenID = '" +
-        citizenID +
-        "' AND timestamp <= '" +
-        beforeTime +
-        "'";
-    })
-    .default(() => {
-      queryString += " WHERE citizenID = '" + citizenID + "'";
+      queryString += " WHERE timestamp <= '" + beforeTime + "'";
     });
 
-  try {
-    await connection.query(queryString).then(result => {
-      const toSend = filterQueryByRadius(
-        result[0],
-        latitude,
-        longitude,
-        radius
-      );
-      if (!toSend.length) {
-        res.json(warning);
-      } else {
-        res.json(toSend);
-      }
-    });
-  } catch {
-    res.json(exception);
-  }
+  // try {
+  await connection.query(queryString).then(result => {
+    const toSend = filterQueryByRadius(
+      result[0],
+      latitude,
+      longitude,
+      radius
+    );
+    if (!toSend.length) {
+      res.json(warning);
+    } else {
+      res.json(toSend);
+    }
+  });
+  // } catch {
+  //   res.json(exception);
+  // }
 };
 
 module.exports = { queryVehiclesAll, queryFinancialsAll, queryCallsAll };
