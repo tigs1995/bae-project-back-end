@@ -250,23 +250,23 @@ const queryCallsAll = async (
       queryString += " WHERE timestamp <= '" + beforeTime + "'";
     });
 
-  // try {
-  await connection.query(queryString).then(result => {
-    const toSend = filterQueryByRadius(
-      result[0],
-      latitude,
-      longitude,
-      radius
-    );
-    if (!toSend.length) {
-      res.json(warning);
-    } else {
-      res.json(toSend);
-    }
-  });
-  // } catch {
-  //   res.json(exception);
-  // }
+  try {
+    await connection.query(queryString).then(result => {
+      const toSend = filterQueryByRadius(
+        result[0],
+        latitude,
+        longitude,
+        radius
+      );
+      if (!toSend.length) {
+        res.json(warning);
+      } else {
+        res.json(toSend);
+      }
+    });
+  } catch {
+    res.json(exception);
+  }
 };
 
 module.exports = { queryVehiclesAll, queryFinancialsAll, queryCallsAll };
