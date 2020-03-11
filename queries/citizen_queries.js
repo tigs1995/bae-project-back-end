@@ -43,7 +43,7 @@ const Cswitch = () => {
   return new ConditionalSwitch();
 };
 
-const queryCitizenExists = async (surname, forenames, res) => {
+const queryCitizenExists = async (surname, forenames, res, test) => {
   try {
     const results = await connection.query(
       "SELECT * FROM citizen WHERE forenames LIKE '%" +
@@ -53,8 +53,10 @@ const queryCitizenExists = async (surname, forenames, res) => {
         "%'"
     );
     if (results[0].length) {
+      if (test) return true;
       res.send(true);
     } else {
+      if (test) return false;
       res.send(false);
     }
   } catch {
@@ -312,7 +314,9 @@ const queryFinancialsByCitizen = async (
   const atmInitString =
     "SELECT citizenID, c.forenames, c.surname, k.cardNumber, b.bankAccountId, a.timestamp, latitude, longitude FROM citizen AS c " +
     "INNER JOIN bank_account_holders AS b ON c.surname = b.surname AND c.forenames = b.forenames AND c.dateOfBirth = b.dateOfBirth " +
-    "INNER JOIN bank_card AS k ON b.bankAccountId = k.bankAccountId";
+    "INNER JOIN bank_card AS k ON b.bankAccountId = k.bankAccountId "+
+    "INNER JOIN atm_transactions as a ON a.bankCardNumber = k.cardNumber " +
+    "INNER JOIN atm_point as t ON a.atmId = t.atmId";
 
   const eposInitString =
     "SELECT citizenID, c.forenames, c.surname, k.cardNumber, b.bankAccountId, e.timestamp, latitude, longitude FROM citizen AS c " +
