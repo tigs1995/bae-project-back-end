@@ -310,25 +310,25 @@ const queryFinancialsByCitizen = async (
   }
 
   const atmInitString =
-    "SELECT citizenID, c.forenames, c.surname, k.cardNumber, b.bankAccountId, a.timestamp, latitude, longitude FROM citizen AS c ";
+    "SELECT citizenID, c.forenames, c.surname, k.cardNumber, b.bankAccountId, a.timestamp, latitude, longitude FROM citizen AS c " +
+    "INNER JOIN bank_account_holders AS b ON c.surname = b.surname AND c.forenames = b.forenames AND c.dateOfBirth = b.dateOfBirth " +
+    "INNER JOIN bank_card AS k ON b.bankAccountId = k.bankAccountId";
 
   const eposInitString =
-    "SELECT citizenID, c.forenames, c.surname, k.cardNumber, e.timestamp, latitude, longitude FROM citizen AS c ";
-
-  let queryString =
+    "SELECT citizenID, c.forenames, c.surname, k.cardNumber, b.bankAccountId, e.timestamp, latitude, longitude FROM citizen AS c " +
     "INNER JOIN bank_account_holders AS b ON c.surname = b.surname AND c.forenames = b.forenames AND c.dateOfBirth = b.dateOfBirth " +
-    "INNER JOIN bank_card AS k ON b.bankAccountId = k.bankAccountId ";
+    "INNER JOIN bank_card AS k ON b.bankAccountId = k.bankAccountId " +
+    "INNER JOIN epos_transactions as e ON k.cardNumber = e.bankCardNumber " +
+    "INNER JOIN epos_terminals as t ON e.eposId = t.id";
+
+  let queryString;
 
   Cswitch()
     .case(atm, () => {
-      queryString +=
-        "INNER JOIN atm_transactions AS a ON a.bankCardNumber = k.cardNumber " +
-        "INNER JOIN atm_point as p ON p.atmId = a.atmId";
-      queryString = atmInitString + queryString;
+      queryString = atmInitString;
     })
     .case(epos, () => {
-      queryString += "INNER JOIN epos_terminals as t ON e.eposId = t.id";
-      queryString = eposInitString + queryString;
+      queryString = eposInitString;
     })
     .case(afterTime && beforeTime, () => {
       queryString +=
