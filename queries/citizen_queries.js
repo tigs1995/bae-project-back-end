@@ -297,7 +297,7 @@ const queryCallsByCitizen = async (
       queryString += " WHERE citizenID = '" + citizenID + "'";
     });
 
-  try {
+  // try {
     await connection.query(queryString).then(result => {
       if (!result[0].length || !citizenID) {
         res.json(warning);
@@ -305,9 +305,9 @@ const queryCallsByCitizen = async (
         res.json(result[0]);
       }
     });
-  } catch {
-    res.json(exception);
-  }
+  // } catch {
+  //   res.json(exception);
+  // }
 };
 
 const queryFinancialsByCitizen = async (
@@ -331,34 +331,19 @@ const queryFinancialsByCitizen = async (
   }
 
   const atmInitString =
-    "SELECT citizenID, c.forenames, c.surname, k.cardNumber, a.timestamp, latitude, longitude, amount FROM citizen AS c ";
-
-  // INNER JOIN bank_account_holders AS b ON c.surname = b.surname AND c.forenames = b.forenames AND c.dateOfBirth = b.dateOfBirth
-  // INNER JOIN bank_cards AS k ON b.bankAccountId = k.bankAccountId
-  // INNER JOIN epos_transactions AS e on e.bankCardNumber = k.cardNumber
-  // INNER JOIN atm_transactions AS a ON a.bankCardNumber = e.bankCardNumber
-  // INNER JOIN atm_point as p ON p.atmId = a.atmId
-  // LIMIT 5;
+    "SELECT citizenID, c.forenames, c.surname, k.cardNumber, b.bankAccountId, a.timestamp, latitude, longitude FROM citizen AS c ";
 
   const eposInitString =
     "SELECT citizenID, c.forenames, c.surname, k.cardNumber, e.timestamp, latitude, longitude FROM citizen AS c ";
 
-  // SELECT citizenID, c.forenames, c.surname, k.cardNumber, e.timestamp, latitude, longitude FROM citizen AS c
-  // INNER JOIN bank_account_holders AS b ON c.surname = b.surname AND c.forenames = b.forenames AND c.dateOfBirth = b.dateOfBirth
-  // INNER JOIN bank_cards AS k ON b.bankAccountId = k.bankAccountId
-  // INNER JOIN epos_transactions AS e on e.bankCardNumber = k.cardNumber
-  // INNER JOIN epos_terminals as t ON e.eposId = t.id
-  // LIMIT 5;
-
   let queryString =
     "INNER JOIN bank_account_holders AS b ON c.surname = b.surname AND c.forenames = b.forenames AND c.dateOfBirth = b.dateOfBirth " +
-    "INNER JOIN bank_card AS k ON b.bankAccountId = k.bankAccountId " +
-    "INNER JOIN epos_transactions AS e on e.bankCardNumber = k.cardNumber ";
+    "INNER JOIN bank_card AS k ON b.bankAccountId = k.bankAccountId ";
 
   Cswitch()
     .case(atm, () => {
       queryString +=
-        "INNER JOIN atm_transactions AS a ON a.bankCardNumber = e.bankCardNumber" +
+        "INNER JOIN atm_transactions AS a ON a.bankCardNumber = k.cardNumber " +
         "INNER JOIN atm_point as p ON p.atmId = a.atmId";
       queryString = atmInitString + queryString;
     })
@@ -398,7 +383,7 @@ const queryFinancialsByCitizen = async (
       queryString += " WHERE citizenID = '" + citizenID + "'";
     });
 
-  try {
+  // try {
     await connection.query(queryString).then(result => {
       if (!result[0].length || !citizenID) {
         res.json(warning);
@@ -406,9 +391,9 @@ const queryFinancialsByCitizen = async (
         res.json(result[0]);
       }
     });
-  } catch {
-    res.json(exception);
-  }
+  // } catch {
+  //   res.json(exception);
+  // }
 };
 
 const queryAssociates = async (citizenID, res) => {
