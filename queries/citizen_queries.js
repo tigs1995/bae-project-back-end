@@ -419,13 +419,11 @@ const queryAssociates = async (citizenID, res) => {
                   ) {
                     res.json(warning);
                   } else {
-                    const toReturn = [
-                      {
-                        inboundCallAssociates: inboundAssociates[0],
-                        outboundCallAssociates: outboundAssociates[0],
-                        possibleFamily: possibleFamily[0]
-                      }
-                    ];
+                    const toReturn = {
+                      inboundCallAssociates: inboundAssociates[0],
+                      outboundCallAssociates: outboundAssociates[0],
+                      possibleFamily: possibleFamily[0]
+                    };
 
                     res.send(toReturn);
                   }
