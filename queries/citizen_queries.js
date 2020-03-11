@@ -155,7 +155,6 @@ const queryVehiclesByCitizen = async (
   beforeTime,
   res
 ) => {
-
   let queryString =
     "SELECT citizenID, c.forenames, c.surname, vehicleRegistrationNo, timestamp, latitude, longitude FROM citizen AS c " +
     "INNER JOIN vehicle_registrations AS v ON c.surname = v.surname AND c.forenames = v.forenames AND c.dateOfBirth = v.dateOfBirth " +
@@ -215,7 +214,6 @@ const queryCallsByCitizen = async (
   inboundOrOutbound,
   res
 ) => {
-
   let inbound = false;
   let outbound = false;
   if (inboundOrOutbound == "inbound") {
@@ -223,7 +221,6 @@ const queryCallsByCitizen = async (
   } else if (inboundOrOutbound == "outbound") {
     outbound = true;
   }
-
 
   let queryOutbound =
     "SELECT receiverMSISDN, s.network, timestamp, latitude AS callerLatitude, longitude AS callerLongitude, " +
@@ -302,7 +299,6 @@ const queryFinancialsByCitizen = async (
   eposOrAtm,
   res
 ) => {
-
   let epos = false;
   let atm = false;
   if (eposOrAtm == "epos") {
@@ -314,7 +310,7 @@ const queryFinancialsByCitizen = async (
   const atmInitString =
     "SELECT citizenID, c.forenames, c.surname, k.cardNumber, b.bankAccountId, a.timestamp, latitude, longitude FROM citizen AS c " +
     "INNER JOIN bank_account_holders AS b ON c.surname = b.surname AND c.forenames = b.forenames AND c.dateOfBirth = b.dateOfBirth " +
-    "INNER JOIN bank_card AS k ON b.bankAccountId = k.bankAccountId "+
+    "INNER JOIN bank_card AS k ON b.bankAccountId = k.bankAccountId " +
     "INNER JOIN atm_transactions as a ON a.bankCardNumber = k.cardNumber " +
     "INNER JOIN atm_point as t ON a.atmId = t.atmId";
 
@@ -406,9 +402,7 @@ const queryAssociates = async (citizenID, res) => {
       .then(cit => {
         const surname = cit[0][0].surname;
         const queryPossibleFamily =
-          "SELECT * FROM citizen WHERE surname LIKE '" +
-          surname +
-          "%' LIMIT 5";
+          "SELECT * FROM citizen WHERE surname LIKE '" + surname + "%' LIMIT 5";
 
         connection.query(queryPossibleFamily).then(possibleFamily => {
           connection
@@ -425,13 +419,15 @@ const queryAssociates = async (citizenID, res) => {
                   ) {
                     res.json(warning);
                   } else {
-                    const toReturn = {
-                      inboundCallAssociates: inboundAssociates,
-                      outboundCallAssociates: outboundAssociates,
-                      possibleFamily: possibleFamily
-                    };
+                    const toReturn = [
+                      {
+                        inboundCallAssociates: inboundAssociates[0],
+                        outboundCallAssociates: outboundAssociates[0],
+                        possibleFamily: possibleFamily[0]
+                      }
+                    ];
 
-                    res.json(toReturn);
+                    res.send(toReturn);
                   }
                 });
             });
