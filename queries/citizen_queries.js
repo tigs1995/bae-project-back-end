@@ -1,5 +1,4 @@
 const { connection } = require("../server/connect_db");
-const utm = require("utm");
 
 const warning = { Warning: "No data found or incorrect input." };
 const exception = { Exception: "Unknown exception." };
@@ -107,6 +106,8 @@ const queryCitizenById = async (citizenID, res) => {
             }
             const toReturn = {
               citizenID: cit[0][0].citizenID,
+              forenames: cit[0][0].forenames,
+              surname: cit[0][0].surname,
               dateOfBirth: cit[0][0].dateOfBirth,
               streetName: cit[0][0].streetName.substring(4),
               city: cit[0][0].city.substring(1),
@@ -121,7 +122,7 @@ const queryCitizenById = async (citizenID, res) => {
           });
       });
   } catch {
-    res.json({ exception: "No data found or incorrect input." });
+    res.json(warning);
   }
 };
 
