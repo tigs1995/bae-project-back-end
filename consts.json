@@ -1,4 +1,4 @@
 {
-  "dbHost": "34.89.38.128",
+  "dbHost": "appdb.clwsewlij2or.eu-west-2.rds.amazonaws.com",
   "dbPort": "3306"
 }
