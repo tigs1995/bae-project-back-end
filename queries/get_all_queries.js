@@ -40,6 +40,11 @@ class Break {
   }
 }
 
+const Cswitch = () => {
+  return new ConditionalSwitch();
+};
+
+
 function getDistanceFromLatLonInKm(lat1, lon1, lat2, lon2) {
   var R = 6371; // Radius of the earth in km
   var dLat = deg2rad(lat2 - lat1);  // deg2rad below
@@ -68,10 +73,6 @@ function filterQueryByRadius(query, latOffset, longOffset, radius) {
   }
   return toReturn;
 }
-
-const Cswitch = () => {
-  return new ConditionalSwitch();
-};
 
 const queryVehiclesAll = async (
   latitude,
@@ -127,7 +128,7 @@ const queryFinancialsAll = async (
   eposOrAtm,
   res
 ) => {
-  // make nested
+
   let epos = false;
   let atm = false;
   if (eposOrAtm == "epos") {
@@ -139,22 +140,8 @@ const queryFinancialsAll = async (
   const atmInitString =
     "SELECT k.cardNumber, a.timestamp, latitude, longitude, amount FROM bank_card AS k ";
 
-  // INNER JOIN bank_account_holders AS b ON c.surname = b.surname AND c.forenames = b.forenames AND c.dateOfBirth = b.dateOfBirth
-  // INNER JOIN bank_cards AS k ON b.bankAccountId = k.bankAccountId
-  // INNER JOIN epos_transactions AS e on e.bankCardNumber = k.cardNumber
-  // INNER JOIN atm_transactions AS a ON a.bankCardNumber = e.bankCardNumber
-  // INNER JOIN atm_point as p ON p.atmId = a.atmId
-  // LIMIT 5;
-
   const eposInitString =
     "SELECT k.cardNumber, timestamp, latitude, longitude FROM bank_card AS k ";
-
-  // SELECT citizenID, c.forenames, c.surname, k.cardNumber, e.timestamp, latitude, longitude FROM citizen AS c
-  // INNER JOIN bank_account_holders AS b ON c.surname = b.surname AND c.forenames = b.forenames AND c.dateOfBirth = b.dateOfBirth
-  // INNER JOIN bank_cards AS k ON b.bankAccountId = k.bankAccountId
-  // INNER JOIN epos_transactions AS e on e.bankCardNumber = k.cardNumber
-  // INNER JOIN epos_terminals as t ON e.eposId = t.id
-  // LIMIT 5;
 
   let queryString =
     "INNER JOIN epos_transactions AS e on e.bankCardNumber = k.cardNumber ";
@@ -211,7 +198,7 @@ const queryCallsAll = async (
   inboundOrOutbound,
   res
 ) => {
-  // make nested
+
   let inbound = false;
   let outbound = false;
   if (inboundOrOutbound == "inbound") {

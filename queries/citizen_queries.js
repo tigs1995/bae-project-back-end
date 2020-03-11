@@ -153,7 +153,7 @@ const queryVehiclesByCitizen = async (
   beforeTime,
   res
 ) => {
-  // 8728766559 works.
+
   let queryString =
     "SELECT citizenID, c.forenames, c.surname, vehicleRegistrationNo, timestamp, latitude, longitude FROM citizen AS c " +
     "INNER JOIN vehicle_registrations AS v ON c.surname = v.surname AND c.forenames = v.forenames AND c.dateOfBirth = v.dateOfBirth " +
@@ -213,7 +213,7 @@ const queryCallsByCitizen = async (
   inboundOrOutbound,
   res
 ) => {
-  // make nested
+
   let inbound = false;
   let outbound = false;
   if (inboundOrOutbound == "inbound") {
@@ -222,7 +222,7 @@ const queryCallsByCitizen = async (
     outbound = true;
   }
 
-  // 7138293318 works
+
   let queryOutbound =
     "SELECT receiverMSISDN, s.network, timestamp, latitude AS callerLatitude, longitude AS callerLongitude, " +
     "r.forenames AS receiverForenames, r.surname AS receiverSurname FROM citizen AS c " +
@@ -231,15 +231,6 @@ const queryCallsByCitizen = async (
     "INNER JOIN cell_tower AS t ON m.callCellTowerId = t.cellTowerId " +
     "INNER JOIN subscriber_records as r ON r.phoneNumber = m.receiverMSISDN";
 
-  // SELECT receiverMSISDN, s.network, timestamp, latitude AS callerLatitude, longitude AS callerLongitude,
-  // r.forenames AS receiverForenames, r.surname AS receiverSurname
-  // FROM citizen AS c
-  // INNER JOIN subscriber_records AS s ON c.surname = s.surname AND c.forenames = s.forenames AND c.dateOfBirth = s.dateOfBirth
-  // INNER JOIN mobile_call_records AS m ON s.phoneNumber = m.callerMSISDN
-  // INNER JOIN cell_tower AS t ON m.callCellTowerId = t.cellTowerId
-  // INNER JOIN subscriber_records as r ON r.phoneNumber = m.receiverMSISDN;
-
-  // 6724774958 works
   let queryInbound =
     "SELECT callerMSISDN, s.network, timestamp, latitude AS callerLatitude, longitude AS callerLongitude, " +
     "r.forenames AS receiverForenames, r.surname AS receiverSurname FROM citizen AS c " +
@@ -247,14 +238,6 @@ const queryCallsByCitizen = async (
     "INNER JOIN mobile_call_records AS m ON s.phoneNumber = m.receiverMSISDN " +
     "INNER JOIN cell_tower AS t ON m.callCellTowerId = t.cellTowerId " +
     "INNER JOIN subscriber_records as r ON r.phoneNumber = m.callerMSISDN";
-
-  // SELECT callerMSISDN, s.network, timestamp, latitude AS callerLatitude, longitude AS callerLongitude,
-  //   r.forenames AS callerForenames, r.surname AS callerSurname
-  // FROM citizen AS c
-  // INNER JOIN subscriber_records AS s ON c.surname = s.surname AND c.forenames = s.forenames AND c.dateOfBirth = s.dateOfBirth
-  // INNER JOIN mobile_call_records AS m ON s.phoneNumber = m.receiverMSISDN
-  // INNER JOIN cell_tower AS t ON m.callCellTowerId = t.cellTowerId
-  // INNER JOIN subscriber_records as r ON r.phoneNumber = m.callerMSISDN;
 
   let queryString;
 
@@ -297,7 +280,7 @@ const queryCallsByCitizen = async (
       queryString += " WHERE citizenID = '" + citizenID + "'";
     });
 
-  // try {
+  try {
     await connection.query(queryString).then(result => {
       if (!result[0].length || !citizenID) {
         res.json(warning);
@@ -305,9 +288,9 @@ const queryCallsByCitizen = async (
         res.json(result[0]);
       }
     });
-  // } catch {
-  //   res.json(exception);
-  // }
+  } catch {
+    res.json(exception);
+  }
 };
 
 const queryFinancialsByCitizen = async (
@@ -317,11 +300,7 @@ const queryFinancialsByCitizen = async (
   eposOrAtm,
   res
 ) => {
-  // Barely any record make it to the final queries. This is due to our sample set not being large enough.
-  // 6362899727 and 6488697932 work for epos.
-  // None work for atm. Perhaps mock it?
 
-  // make nested
   let epos = false;
   let atm = false;
   if (eposOrAtm == "epos") {
@@ -383,7 +362,7 @@ const queryFinancialsByCitizen = async (
       queryString += " WHERE citizenID = '" + citizenID + "'";
     });
 
-  // try {
+  try {
     await connection.query(queryString).then(result => {
       if (!result[0].length || !citizenID) {
         res.json(warning);
@@ -391,9 +370,9 @@ const queryFinancialsByCitizen = async (
         res.json(result[0]);
       }
     });
-  // } catch {
-  //   res.json(exception);
-  // }
+  } catch {
+    res.json(exception);
+  }
 };
 
 const queryAssociates = async (citizenID, res) => {
