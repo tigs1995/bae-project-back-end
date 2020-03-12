@@ -13,8 +13,8 @@ router.post("/getCitizen", async ({ body }, res) => {
   res.json(await query.queryCitizenById(body.citizenID, res));
 });
 
-router.post("/getBankCardInfo", ({ body }, res) => {
-  query.queryBankCardByCitizen(body.citizenID, res);
+router.post("/getBankCardInfo", async ({ body }, res) => {
+  res.json(await query.queryBankCardByCitizen(body.citizenID, res));
 });
 
 router.post("/getCitizenCalls", ({ body }, res) => {

@@ -133,7 +133,7 @@ const queryCitizenById = citizenID => {
   }
 };
 
-const queryBankCardByCitizen = async (citizenID, res) => {
+const queryBankCardByCitizen = citizenID => {
   let queryString =
     "SELECT bankCardId, cardNumber, sortCode, b.bankAccountId, b.accountNumber, b.bank, c.forenames, c.surname, c.dateOfBirth FROM citizen AS c " +
     "INNER JOIN bank_account_holders AS b ON c.forenames = b.forenames and c.surname = b.surname and c.dateOfBirth = b.dateOfBirth " +
@@ -142,15 +142,15 @@ const queryBankCardByCitizen = async (citizenID, res) => {
     queryString += " WHERE citizenID = '" + citizenID + "'";
   });
   try {
-    await connection.query(queryString).then(result => {
+    return connection.query(queryString).then(result => {
       if (!result[0].length || !citizenID) {
-        res.json(warning);
+        return warning;
       } else {
-        res.json(result[0]);
+        return result[0];
       }
     });
   } catch {
-    res.json(exception);
+    return exception;
   }
 };
 
