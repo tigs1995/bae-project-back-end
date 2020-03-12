@@ -1,9 +1,5 @@
 const { connection } = require("../server/connect_db");
-const utm = require("utm");
-
-
-const warning = { Warning: "No data found or incorrect input." };
-const exception = { Exception: "Unknown exception." };
+const { warning, exception } = require("../warnings/warnings");
 
 class ConditionalSwitch {
   constructor() {
@@ -45,14 +41,21 @@ const Cswitch = () => {
   return new ConditionalSwitch();
 };
 
-
 const queryVehicle = async vehicleRegistrationNo => {
-  const results = await connection.query(
-    "SELECT * FROM vehicle_registrations WHERE vehicleRegistrationNo like '%" +
-      vehicleRegistrationNo +
-      "%'"
-  );
-  return results[0];
+  try {
+    const results = await connection.query(
+      "SELECT * FROM vehicle_registrations WHERE vehicleRegistrationNo like '%" +
+        vehicleRegistrationNo +
+        "%'"
+    );
+    if (results[0].length) {
+      return results[0];
+    } else {
+      return warning;
+    }
+  } catch {
+    return exception;
+  }
 };
 
 const queryVehicleInfoByReg = async (vehicleRegistrationNo, res) => {

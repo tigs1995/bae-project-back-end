@@ -1,7 +1,6 @@
 const { connection } = require("../server/connect_db");
+const { warning, exception } = require("../warnings/warnings");
 
-const warning = { Warning: "No data found or incorrect input." };
-const exception = { Exception: "Unknown exception." };
 class ConditionalSwitch {
   constructor() {
     this.lastExecuted = false;
@@ -64,7 +63,7 @@ const queryCitizenExists = async (surname, forenames, res, test) => {
   }
 };
 
-const queryCitizen = async (surname, forenames, res) => {
+const queryCitizen = async (surname, forenames, res, test) => {
   try {
     const results = await connection.query(
       "SELECT * FROM citizen WHERE forenames LIKE '%" +
@@ -74,9 +73,11 @@ const queryCitizen = async (surname, forenames, res) => {
         "%'"
     );
     if (results[0].length) {
+      if (test) return results[0];
       res.send(results[0]);
     } else {
-      res.send(results[0]);
+      if (test) return warning;
+      res.send(warning);
     }
   } catch {
     res.json(exception);
@@ -444,5 +445,7 @@ module.exports = {
   queryVehiclesByCitizen,
   queryCallsByCitizen,
   queryFinancialsByCitizen,
-  queryAssociates
+  queryAssociates,
+  warning,
+  exception
 };

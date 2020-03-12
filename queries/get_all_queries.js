@@ -1,8 +1,7 @@
 const { connection } = require("../server/connect_db");
 const utm = require("utm");
 
-const warning = { Warning: "No data found or incorrect input." };
-const exception = { Exception: "Unknown exception." };
+const { warning, exception } = require("../warnings/warnings");
 
 class ConditionalSwitch {
   constructor() {
@@ -44,29 +43,34 @@ const Cswitch = () => {
   return new ConditionalSwitch();
 };
 
-
 function getDistanceFromLatLonInKm(lat1, lon1, lat2, lon2) {
   var R = 6371; // Radius of the earth in km
-  var dLat = deg2rad(lat2 - lat1);  // deg2rad below
+  var dLat = deg2rad(lat2 - lat1); // deg2rad below
   var dLon = deg2rad(lon2 - lon1);
   var a =
     Math.sin(dLat / 2) * Math.sin(dLat / 2) +
-    Math.cos(deg2rad(lat1)) * Math.cos(deg2rad(lat2)) *
-    Math.sin(dLon / 2) * Math.sin(dLon / 2)
-    ;
+    Math.cos(deg2rad(lat1)) *
+      Math.cos(deg2rad(lat2)) *
+      Math.sin(dLon / 2) *
+      Math.sin(dLon / 2);
   var c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
   var d = R * c; // Distance in km
   return d;
 }
 
 function deg2rad(deg) {
-  return deg * (Math.PI / 180)
+  return deg * (Math.PI / 180);
 }
 
 function filterQueryByRadius(query, latOffset, longOffset, radius) {
   toReturn = [];
   for (let record of query) {
-    const r = getDistanceFromLatLonInKm(latOffset, longOffset, record.latitude, record.longitude)
+    const r = getDistanceFromLatLonInKm(
+      latOffset,
+      longOffset,
+      record.latitude,
+      record.longitude
+    );
     if (r <= radius) {
       toReturn.push(record);
     }
@@ -128,7 +132,6 @@ const queryFinancialsAll = async (
   eposOrAtm,
   res
 ) => {
-
   let epos = false;
   let atm = false;
   if (eposOrAtm == "epos") {
@@ -198,7 +201,6 @@ const queryCallsAll = async (
   inboundOrOutbound,
   res
 ) => {
-
   let inbound = false;
   let outbound = false;
   if (inboundOrOutbound == "inbound") {
