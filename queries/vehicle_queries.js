@@ -45,8 +45,8 @@ const queryVehicle = async vehicleRegistrationNo => {
   try {
     const results = await connection.query(
       "SELECT * FROM vehicle_registrations WHERE vehicleRegistrationNo like '%" +
-        vehicleRegistrationNo +
-        "%'"
+      vehicleRegistrationNo +
+      "%'"
     );
     if (results[0].length) {
       return results[0];
@@ -63,20 +63,20 @@ const queryVehicleInfoByReg = async (vehicleRegistrationNo, res) => {
     await connection
       .query(
         "SELECT * FROM vehicle_registrations WHERE vehicleRegistrationNo LIKE '" +
-          vehicleRegistrationNo +
-          "'"
+        vehicleRegistrationNo +
+        "'"
       )
       .then(veh => {
         try {
           connection
             .query(
               "SELECT * FROM citizen WHERE forenames LIKE '" +
-                veh[0][0].forenames +
-                "' AND surname LIKE '" +
-                veh[0][0].surname +
-                "' AND dateOfBirth LIKE '" +
-                veh[0][0].dateOfBirth +
-                "'"
+              veh[0][0].forenames +
+              "' AND surname LIKE '" +
+              veh[0][0].surname +
+              "' AND dateOfBirth LIKE '" +
+              veh[0][0].dateOfBirth +
+              "'"
             )
             .then(cit => {
               const toReturn = {
@@ -91,15 +91,21 @@ const queryVehicleInfoByReg = async (vehicleRegistrationNo, res) => {
                 colour: veh[0][0].colour,
                 driverLicenceID: veh[0][0].driverLicenceID
               };
-
-              res.json(toReturn);
+              if (toReturn.registrationID) {
+                if (test) return (toReturn);
+                res.send(toReturn);
+              } else {
+                if (test) return warning;
+                res.send(warning);
+              }
+              // res.json(toReturn);
             });
         } catch {
-          res.json(Warning);
+          res.json(warning);
         }
       });
   } catch {
-    res.json(Warning);
+    res.json(exception);
   }
 };
 
