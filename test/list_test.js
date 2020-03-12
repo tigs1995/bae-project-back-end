@@ -36,7 +36,7 @@ describe('../queries/vehicle_queries.js - queryVehicle("ZX70 EFO");', async () =
   it("Should return true.", async () => {
     await queryVehicle("ZX70 EFO").then(result => {
       console.log(result);
-      assert.equal(result[0].registrationID == 134243, true);
+      assert.equal(result[0].registrationID, 134243);
     });
   });
 });

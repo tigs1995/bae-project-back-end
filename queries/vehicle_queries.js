@@ -45,8 +45,8 @@ const queryVehicle = async vehicleRegistrationNo => {
   try {
     const results = await connection.query(
       "SELECT * FROM vehicle_registrations WHERE vehicleRegistrationNo like '%" +
-      vehicleRegistrationNo +
-      "%'"
+        vehicleRegistrationNo +
+        "%'"
     );
     if (results[0].length) {
       return results[0];
@@ -58,25 +58,25 @@ const queryVehicle = async vehicleRegistrationNo => {
   }
 };
 
-const queryVehicleInfoByReg = async (vehicleRegistrationNo, res) => {
+const queryVehicleInfoByReg = vehicleRegistrationNo => {
   try {
-    await connection
+    return connection
       .query(
         "SELECT * FROM vehicle_registrations WHERE vehicleRegistrationNo LIKE '" +
-        vehicleRegistrationNo +
-        "'"
+          vehicleRegistrationNo +
+          "'"
       )
       .then(veh => {
         try {
-          connection
+          return connection
             .query(
               "SELECT * FROM citizen WHERE forenames LIKE '" +
-              veh[0][0].forenames +
-              "' AND surname LIKE '" +
-              veh[0][0].surname +
-              "' AND dateOfBirth LIKE '" +
-              veh[0][0].dateOfBirth +
-              "'"
+                veh[0][0].forenames +
+                "' AND surname LIKE '" +
+                veh[0][0].surname +
+                "' AND dateOfBirth LIKE '" +
+                veh[0][0].dateOfBirth +
+                "'"
             )
             .then(cit => {
               const toReturn = {
@@ -92,20 +92,18 @@ const queryVehicleInfoByReg = async (vehicleRegistrationNo, res) => {
                 driverLicenceID: veh[0][0].driverLicenceID
               };
               if (toReturn.registrationID) {
-                if (test) return (toReturn);
-                res.send(toReturn);
+                return toReturn;
               } else {
-                if (test) return warning;
-                res.send(warning);
+                return warning;
               }
               // res.json(toReturn);
             });
         } catch {
-          res.json(warning);
+          return warning;
         }
       });
   } catch {
-    res.json(exception);
+    return exception;
   }
 };
 

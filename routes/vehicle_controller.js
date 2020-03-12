@@ -18,8 +18,8 @@ router.post("/vehicleList", (req, res) => {
     .then(vehicle => res.json(vehicle));
 });
 
-router.post("/getVehicleInfo", ({ body }, res) => {
-  query.queryVehicleInfoByReg(body.vehicleRegistrationNo, res);
+router.post("/getVehicleInfo", async ({ body }, res) => {
+  res.json(await query.queryVehicleInfoByReg(body.vehicleRegistrationNo));
 });
 
 router.post("/getANPRInfo", ({ body }, res) => {
