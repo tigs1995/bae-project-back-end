@@ -9,8 +9,8 @@ router.post("/citizenList", (req, res) => {
   query.queryCitizen(req.body.surname, req.body.forenames, res);
 });
 
-router.post("/getCitizen", ({ body }, res) => {
-  query.queryCitizenById(body.citizenID, res);
+router.post("/getCitizen", async ({ body }, res) => {
+  res.json(await query.queryCitizenById(body.citizenID, res));
 });
 
 router.post("/getBankCardInfo", ({ body }, res) => {

@@ -84,48 +84,52 @@ const queryCitizen = async (surname, forenames, res, test) => {
   }
 };
 
-const queryCitizenById = async (citizenID, res) => {
+const queryCitizenById = citizenID => {
   try {
-    await connection
+    return connection
       .query("SELECT * FROM citizen WHERE citizenID LIKE '" + citizenID + "'")
       .then(cit => {
-        connection
-          .query(
-            "SELECT * FROM vehicle_registrations WHERE forenames LIKE '" +
-              cit[0][0].forenames +
-              "'" +
-              " AND surname LIKE '" +
-              cit[0][0].surname +
-              "'" +
-              " AND dateOfBirth LIKE '" +
-              cit[0][0].dateOfBirth +
-              "'"
-          )
-          .then(veh => {
-            for (let i of veh[0]) {
-              i.streetName = i.streetName.substring(4);
-              i.postcode = i.postcode.substring(1, i.postcode.length - 1);
-              i.city = i.city.substring(1);
-            }
-            const toReturn = {
-              citizenID: cit[0][0].citizenID,
-              forenames: cit[0][0].forenames,
-              surname: cit[0][0].surname,
-              dateOfBirth: cit[0][0].dateOfBirth,
-              streetName: cit[0][0].streetName.substring(4),
-              city: cit[0][0].city.substring(1),
-              postcode: cit[0][0].postcode.substring(
-                1,
-                cit[0][0].postcode.length - 1
-              ),
-              placeOfBirth: cit[0][0].placeOfBirth,
-              vehicleRegistrations: veh[0]
-            };
-            res.json(toReturn);
-          });
+        try {
+          return connection
+            .query(
+              "SELECT * FROM vehicle_registrations WHERE forenames LIKE '" +
+                cit[0][0].forenames +
+                "'" +
+                " AND surname LIKE '" +
+                cit[0][0].surname +
+                "'" +
+                " AND dateOfBirth LIKE '" +
+                cit[0][0].dateOfBirth +
+                "'"
+            )
+            .then(veh => {
+              for (let i of veh[0]) {
+                i.streetName = i.streetName.substring(4);
+                i.postcode = i.postcode.substring(1, i.postcode.length - 1);
+                i.city = i.city.substring(1);
+              }
+              const toReturn = {
+                citizenID: cit[0][0].citizenID,
+                forenames: cit[0][0].forenames,
+                surname: cit[0][0].surname,
+                dateOfBirth: cit[0][0].dateOfBirth,
+                streetName: cit[0][0].streetName.substring(4),
+                city: cit[0][0].city.substring(1),
+                postcode: cit[0][0].postcode.substring(
+                  1,
+                  cit[0][0].postcode.length - 1
+                ),
+                placeOfBirth: cit[0][0].placeOfBirth,
+                vehicleRegistrations: veh[0]
+              };
+              return toReturn;
+            });
+        } catch {
+          return warning;
+        }
       });
   } catch {
-    res.json(warning);
+    return exception;
   }
 };
 
