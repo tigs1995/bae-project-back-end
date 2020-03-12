@@ -11,11 +11,6 @@ const connection = new Sequelize("app", "admin", "password", {
     min: 0,
     acquire: 30000,
     idle: 10000
-  },
-  dialectOptions: {
-    options: {
-      timeout: 50000000
-    }
   }
 });
 
