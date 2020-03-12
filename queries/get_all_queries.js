@@ -44,29 +44,34 @@ const Cswitch = () => {
   return new ConditionalSwitch();
 };
 
-
 function getDistanceFromLatLonInKm(lat1, lon1, lat2, lon2) {
   var R = 6371; // Radius of the earth in km
-  var dLat = deg2rad(lat2 - lat1);  // deg2rad below
+  var dLat = deg2rad(lat2 - lat1); // deg2rad below
   var dLon = deg2rad(lon2 - lon1);
   var a =
     Math.sin(dLat / 2) * Math.sin(dLat / 2) +
-    Math.cos(deg2rad(lat1)) * Math.cos(deg2rad(lat2)) *
-    Math.sin(dLon / 2) * Math.sin(dLon / 2)
-    ;
+    Math.cos(deg2rad(lat1)) *
+      Math.cos(deg2rad(lat2)) *
+      Math.sin(dLon / 2) *
+      Math.sin(dLon / 2);
   var c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
   var d = R * c; // Distance in km
   return d;
 }
 
 function deg2rad(deg) {
-  return deg * (Math.PI / 180)
+  return deg * (Math.PI / 180);
 }
 
 function filterQueryByRadius(query, latOffset, longOffset, radius) {
   toReturn = [];
   for (let record of query) {
-    const r = getDistanceFromLatLonInKm(latOffset, longOffset, record.latitude, record.longitude)
+    const r = getDistanceFromLatLonInKm(
+      latOffset,
+      longOffset,
+      record.latitude,
+      record.longitude
+    );
     if (r <= radius) {
       toReturn.push(record);
     }
@@ -128,7 +133,6 @@ const queryFinancialsAll = async (
   eposOrAtm,
   res
 ) => {
-
   let epos = false;
   let atm = false;
   if (eposOrAtm == "epos") {
@@ -138,7 +142,7 @@ const queryFinancialsAll = async (
   }
 
   const atmInitString =
-    "SELECT k.cardNumber, a.timestamp, latitude, longitude, amount FROM bank_card AS k ";
+    "SELECT k.cardNumber, a.timestamp, latitude, longitude, a.ammount FROM bank_card AS k ";
 
   const eposInitString =
     "SELECT k.cardNumber, timestamp, latitude, longitude FROM bank_card AS k ";
@@ -150,7 +154,7 @@ const queryFinancialsAll = async (
     .case(atm, () => {
       queryString +=
         "INNER JOIN atm_transactions AS a ON a.bankCardNumber = e.bankCardNumber" +
-        "INNER JOIN atm_point as p ON p.atmId = a.atmId";
+        " INNER JOIN atm_point as p ON p.atmId = a.atmId";
       queryString = atmInitString + queryString;
     })
     .case(epos, () => {
@@ -198,7 +202,6 @@ const queryCallsAll = async (
   inboundOrOutbound,
   res
 ) => {
-
   let inbound = false;
   let outbound = false;
   if (inboundOrOutbound == "inbound") {
