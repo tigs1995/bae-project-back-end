@@ -35,7 +35,6 @@ describe("Citizen List", () => {
 describe('../queries/vehicle_queries.js - queryVehicle("ZX70 EFO");', async () => {
   it("Should return true.", async () => {
     await queryVehicle("ZX70 EFO").then(result => {
-      console.log(result);
       assert.equal(result[0].registrationID, 134243);
     });
   });
@@ -43,7 +42,6 @@ describe('../queries/vehicle_queries.js - queryVehicle("ZX70 EFO");', async () =
 describe('../queries/vehicle_queries.js - queryVehicle("ZX70 EagsdfgFO");', async () => {
   it("Should return a warning.", async () => {
     await queryVehicle("ZX70 EagsdfgFO").then(result => {
-      console.log(result);
       assert.equal(result, warning);
     });
   });

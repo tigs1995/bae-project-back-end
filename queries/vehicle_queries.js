@@ -107,7 +107,7 @@ const queryVehicleInfoByReg = vehicleRegistrationNo => {
   }
 };
 
-const queryANPRInfoByVehReg = async (vehicleRegistrationNo, res) => {
+const queryANPRInfoByVehReg = async vehicleRegistrationNo => {
   let queryString =
     "SELECT timestamp, streetName, latitude, longitude, vehicleRegistrationNo FROM vehicle_registrations AS v " +
     "INNER JOIN anpr_observations AS a ON v.vehicleRegistrationNo = a.vehicleRegistrationNumber " +
@@ -117,15 +117,15 @@ const queryANPRInfoByVehReg = async (vehicleRegistrationNo, res) => {
       " WHERE vehicleRegistrationNo = '" + vehicleRegistrationNo + "'";
   });
   try {
-    await connection.query(queryString).then(result => {
+    return connection.query(queryString).then(result => {
       if (!result[0].length || !vehicleRegistrationNo) {
-        res.json(warning);
+        return warning;
       } else {
-        res.json(result[0]);
+        return result[0];
       }
     });
   } catch {
-    res.json(exception);
+    return exception;
   }
 };
 

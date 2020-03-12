@@ -1,5 +1,8 @@
 const assert = require("assert");
-const { queryVehicleInfoByReg } = require("../queries/vehicle_queries");
+const {
+  queryVehicleInfoByReg,
+  queryANPRInfoByVehReg
+} = require("../queries/vehicle_queries");
 const {
   queryCitizenById,
   queryBankCardByCitizen
@@ -8,7 +11,7 @@ const { warning } = require("../warnings/warnings");
 
 //vehicle by reg
 describe("Test Queries that take in only an ID or Reg.", function() {
-  this.timeout(10000);
+  this.timeout(20000);
   describe('../queries/vehicle_queries.js - queryVehicleInfoByReg("IT72 YSC");', async () => {
     it("Should return true.", async () => {
       await queryVehicleInfoByReg("IT72 YSC").then(toReturn => {
@@ -52,6 +55,24 @@ describe("Test Queries that take in only an ID or Reg.", function() {
     it("Should return a warning.", async () => {
       await queryCitizenById("23326295510000").then(toReturn => {
         assert.equal(toReturn, warning);
+      });
+    });
+  });
+
+  //anprInfoByVehReg
+  describe("Vehicle ANPR Info", () => {
+    describe('../queries/vehicle_queries.js - queryANPRInfoByVehReg("JU10 ECY");', async () => {
+      it("Should return latitude.", async () => {
+        await queryANPRInfoByVehReg("JU10 ECY").then(result => {
+          assert.equal(result[0].latitude, 51.5213482421938);
+        });
+      });
+    });
+    describe('../queries/vehicle_queries.js - queryANPRInfoByVehReg("JU10 EagsdfgFO");', async () => {
+      it("Should return a warning.", async () => {
+        await queryANPRInfoByVehReg("JU10 EagsdfgFO").then(result => {
+          assert.equal(result, warning);
+        });
       });
     });
   });
