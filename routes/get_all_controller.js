@@ -13,6 +13,7 @@ router.post("/getVehiclesAll", ({ body }, res) => {
 });
 
 router.post("/getFinancialsAll", async ({ body }, res) => {
+
   res.json(await query.queryFinancialsAll(
     body.latitude,
     body.longitude,
@@ -22,6 +23,7 @@ router.post("/getFinancialsAll", async ({ body }, res) => {
     body.eposOrAtm,
     res
   ));
+
 });
 
 router.post("/getCallsAll", ({ body }, res) => {

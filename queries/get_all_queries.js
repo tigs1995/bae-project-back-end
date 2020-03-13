@@ -129,8 +129,7 @@ const queryFinancialsAll = (
   radius,
   afterTime,
   beforeTime,
-  eposOrAtm,
-  res
+  eposOrAtm
 ) => {
   let epos = false;
   let atm = false;
@@ -140,7 +139,9 @@ const queryFinancialsAll = (
     atm = true;
   }
   const atmInitString =
+
     "SELECT k.cardNumber, timestamp, latitude, longitude, a.ammount FROM bank_card AS k ";
+
   const eposInitString =
     "SELECT k.cardNumber, timestamp, latitude, longitude FROM bank_card AS k ";
   let queryString;
@@ -148,6 +149,7 @@ const queryFinancialsAll = (
     .case(atm, () => {
       queryString = atmInitString;
       queryString +=
+
         "INNER JOIN atm_transactions AS a ON a.bankCardNumber = k.cardNumber" +
         " INNER JOIN atm_point as p ON p.atmId = a.atmId";
     })
@@ -158,15 +160,19 @@ const queryFinancialsAll = (
     })
     .case(afterTime && beforeTime, () => {
       queryString +=
-        " WHERE timestamp BETWEEN '" + afterTime + "' AND '" + beforeTime + "'";
+        " WHERE a.timestamp BETWEEN '" +
+        afterTime +
+        "' AND '" +
+        beforeTime +
+        "'";
     })
     .break()
     .case(afterTime, () => {
-      queryString += " WHERE timestamp >= '" + afterTime + "'";
+      queryString += " WHERE a.timestamp >= '" + afterTime + "'";
     })
     .break()
     .case(beforeTime, () => {
-      queryString += " WHERE timestamp <= '" + beforeTime + "'";
+      queryString += " WHERE a.timestamp <= '" + beforeTime + "'";
     });
   try {
     return connection.query(queryString).then(result => {

@@ -1,4 +1,7 @@
 const app = require("express")();
+const db = require("./connect_db");
+const cors = require("cors");
+
 const port = 8080;
 const login_controller = require("../routes/login_controller");
 const citizen_controller = require("../routes/citizen_controller");
@@ -6,6 +9,8 @@ const vehicle_controller = require("../routes/vehicle_controller");
 const get_all_controller = require("../routes/get_all_controller");
 
 app.use(require("express").json());
+
+app.use(cors());
 
 app.use((req, res, next) => {
   const logEntry = `
