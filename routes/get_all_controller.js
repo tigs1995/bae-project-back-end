@@ -12,15 +12,17 @@ router.post("/getVehiclesAll", ({ body }, res) => {
   );
 });
 
-router.post("/getFinancialsAll", ({ body }, res) => {
-  query.queryFinancialsAll(
-    body.latitude,
-    body.longitude,
-    body.radius,
-    body.afterTime,
-    body.beforeTime,
-    body.eposOrAtm,
-    res
+router.post("/getFinancialsAll", async ({ body }, res) => {
+  res.json(
+    await query.queryFinancialsAll(
+      body.latitude,
+      body.longitude,
+      body.radius,
+      body.afterTime,
+      body.beforeTime,
+      body.eposOrAtm,
+      res
+    )
   );
 });
 

@@ -124,14 +124,13 @@ const queryVehiclesAll = async (
   }
 };
 
-const queryFinancialsAll = async (
+const queryFinancialsAll = (
   latitude,
   longitude,
   radius,
   afterTime,
   beforeTime,
-  eposOrAtm,
-  res
+  eposOrAtm
 ) => {
   let epos = false;
   let atm = false;
@@ -163,19 +162,23 @@ const queryFinancialsAll = async (
     })
     .case(afterTime && beforeTime, () => {
       queryString +=
-        " WHERE timestamp BETWEEN '" + afterTime + "' AND '" + beforeTime + "'";
+        " WHERE a.timestamp BETWEEN '" +
+        afterTime +
+        "' AND '" +
+        beforeTime +
+        "'";
     })
     .break()
     .case(afterTime, () => {
-      queryString += " WHERE timestamp >= '" + afterTime + "'";
+      queryString += " WHERE a.timestamp >= '" + afterTime + "'";
     })
     .break()
     .case(beforeTime, () => {
-      queryString += " WHERE timestamp <= '" + beforeTime + "'";
+      queryString += " WHERE a.timestamp <= '" + beforeTime + "'";
     });
 
   try {
-    await connection.query(queryString).then(result => {
+    return connection.query(queryString).then(result => {
       const toSend = filterQueryByRadius(
         result[0],
         latitude,
@@ -183,13 +186,13 @@ const queryFinancialsAll = async (
         radius
       );
       if (!toSend.length) {
-        res.json(warning);
+        return warning;
       } else {
-        res.json(toSend);
+        return toSend;
       }
     });
   } catch {
-    res.json(exception);
+    return exception;
   }
 };
 
