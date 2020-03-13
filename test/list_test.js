@@ -16,32 +16,32 @@ const tony = {
 };
 
 describe("Citizen List", () => {
-  describe('../queries/citizen_queries.js - queryCitizen("Armstrong", "Tony");', async () => {
-    it("Should return Tony Armstrong's postcode.", async () => {
-      await queryCitizen("Armstrong", "Tony", "#res", true).then(result => {
+  describe('../queries/citizen_queries.js - queryCitizen("Armstrong", "Tony");', () => {
+    it("Should return Tony Armstrong's postcode.", () => {
+      queryCitizen("Armstrong", "Tony", "#res", true).then(result => {
         assert.equal(result[0].postcode, tony.postcode);
       });
     });
   });
-  describe('../queries/citizen_queries.js - queryCitizen("Armstrong", "TonBLAHy");', async () => {
-    it("Should return a warning.", async () => {
-      await queryCitizen("Armstrong", "TonBLAHy", "#res", true).then(result => {
+  describe('../queries/citizen_queries.js - queryCitizen("Armstrong", "TonBLAHy");', () => {
+    it("Should return a warning.", () => {
+      queryCitizen("Armstrong", "TonBLAHy", "#res", true).then(result => {
         assert.equal(result, warning);
       });
     });
   });
 });
 
-describe('../queries/vehicle_queries.js - queryVehicle("ZX70 EFO");', async () => {
-  it("Should return true.", async () => {
-    await queryVehicle("ZX70 EFO").then(result => {
+describe('../queries/vehicle_queries.js - queryVehicle("ZX70 EFO");', () => {
+  it("Should return true.", () => {
+    queryVehicle("ZX70 EFO").then(result => {
       assert.equal(result[0].registrationID, 134243);
     });
   });
 });
-describe('../queries/vehicle_queries.js - queryVehicle("ZX70 EagsdfgFO");', async () => {
+describe('../queries/vehicle_queries.js - queryVehicle("ZX70 EagsdfgFO");', () => {
   it("Should return a warning.", async () => {
-    await queryVehicle("ZX70 EagsdfgFO").then(result => {
+    queryVehicle("ZX70 EagsdfgFO").then(result => {
       assert.equal(result, warning);
     });
   });
