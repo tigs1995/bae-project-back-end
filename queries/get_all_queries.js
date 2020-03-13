@@ -139,21 +139,17 @@ const queryFinancialsAll = async (
   } else if (eposOrAtm == "atm") {
     atm = true;
   }
-
   const atmInitString =
-    "SELECT k.cardNumber, a.timestamp, latitude, longitude, amount FROM bank_card AS k ";
-
+    "SELECT k.cardNumber, a.timestamp, latitude, longitude, a.ammount FROM bank_card AS k ";
   const eposInitString =
     "SELECT k.cardNumber, timestamp, latitude, longitude FROM bank_card AS k ";
-
   let queryString =
     "INNER JOIN epos_transactions AS e on e.bankCardNumber = k.cardNumber ";
-
   Cswitch()
     .case(atm, () => {
       queryString +=
         "INNER JOIN atm_transactions AS a ON a.bankCardNumber = e.bankCardNumber" +
-        "INNER JOIN atm_point as p ON p.atmId = a.atmId";
+        " INNER JOIN atm_point as p ON p.atmId = a.atmId";
       queryString = atmInitString + queryString;
     })
     .case(epos, () => {
@@ -172,7 +168,6 @@ const queryFinancialsAll = async (
     .case(beforeTime, () => {
       queryString += " WHERE timestamp <= '" + beforeTime + "'";
     });
-
   try {
     return connection.query(queryString).then(result => {
       const toSend = filterQueryByRadius(
