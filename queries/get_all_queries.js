@@ -123,7 +123,7 @@ const queryVehiclesAll = async (
   }
 };
 
-const queryFinancialsAll = async (
+const queryFinancialsAll = (
   latitude,
   longitude,
   radius,
@@ -149,7 +149,7 @@ const queryFinancialsAll = async (
     .case(atm, () => {
       queryString +=
         "INNER JOIN atm_transactions AS a ON a.bankCardNumber = e.bankCardNumber" +
-        " INNER JOIN atm_point as p ON p.atmId = a.atmId";
+        " INNER JOIN atm_point as e ON p.atmId = e.atmId";
       queryString = atmInitString + queryString;
     })
     .case(epos, () => {
@@ -158,7 +158,7 @@ const queryFinancialsAll = async (
     })
     .case(afterTime && beforeTime, () => {
       queryString +=
-        " WHERE timestamp BETWEEN '" + afterTime + "' AND '" + beforeTime + "'";
+        " WHERE e.timestamp BETWEEN '" + afterTime + "' AND '" + beforeTime + "'";
     })
     .break()
     .case(afterTime, () => {
