@@ -1,7 +1,6 @@
 const { connection } = require("../server/connect_db");
+const { warning, exception } = require("../warnings/warnings");
 
-const warning = { Warning: "No data found or incorrect input." };
-const exception = { Exception: "Unknown exception." };
 class ConditionalSwitch {
   constructor() {
     this.lastExecuted = false;
@@ -64,7 +63,7 @@ const queryCitizenExists = async (surname, forenames, res, test) => {
   }
 };
 
-const queryCitizen = async (surname, forenames, res) => {
+const queryCitizen = async (surname, forenames, res, test) => {
   try {
     const results = await connection.query(
       "SELECT * FROM citizen WHERE forenames LIKE '%" +
@@ -74,61 +73,67 @@ const queryCitizen = async (surname, forenames, res) => {
         "%'"
     );
     if (results[0].length) {
+      if (test) return results[0];
       res.send(results[0]);
     } else {
-      res.send(results[0]);
+      if (test) return warning;
+      res.send(warning);
     }
   } catch {
     res.json(exception);
   }
 };
 
-const queryCitizenById = async (citizenID, res) => {
+const queryCitizenById = citizenID => {
   try {
-    await connection
+    return connection
       .query("SELECT * FROM citizen WHERE citizenID LIKE '" + citizenID + "'")
       .then(cit => {
-        connection
-          .query(
-            "SELECT * FROM vehicle_registrations WHERE forenames LIKE '" +
-              cit[0][0].forenames +
-              "'" +
-              " AND surname LIKE '" +
-              cit[0][0].surname +
-              "'" +
-              " AND dateOfBirth LIKE '" +
-              cit[0][0].dateOfBirth +
-              "'"
-          )
-          .then(veh => {
-            for (let i of veh[0]) {
-              i.streetName = i.streetName.substring(4);
-              i.postcode = i.postcode.substring(1, i.postcode.length - 1);
-              i.city = i.city.substring(1);
-            }
-            const toReturn = {
-              citizenID: cit[0][0].citizenID,
-              forenames: cit[0][0].forenames,
-              surname: cit[0][0].surname,
-              dateOfBirth: cit[0][0].dateOfBirth,
-              streetName: cit[0][0].streetName.substring(4),
-              city: cit[0][0].city.substring(1),
-              postcode: cit[0][0].postcode.substring(
-                1,
-                cit[0][0].postcode.length - 1
-              ),
-              placeOfBirth: cit[0][0].placeOfBirth,
-              vehicleRegistrations: veh[0]
-            };
-            res.json(toReturn);
-          });
+        try {
+          return connection
+            .query(
+              "SELECT * FROM vehicle_registrations WHERE forenames LIKE '" +
+                cit[0][0].forenames +
+                "'" +
+                " AND surname LIKE '" +
+                cit[0][0].surname +
+                "'" +
+                " AND dateOfBirth LIKE '" +
+                cit[0][0].dateOfBirth +
+                "'"
+            )
+            .then(veh => {
+              for (let i of veh[0]) {
+                i.streetName = i.streetName.substring(4);
+                i.postcode = i.postcode.substring(1, i.postcode.length - 1);
+                i.city = i.city.substring(1);
+              }
+              const toReturn = {
+                citizenID: cit[0][0].citizenID,
+                forenames: cit[0][0].forenames,
+                surname: cit[0][0].surname,
+                dateOfBirth: cit[0][0].dateOfBirth,
+                streetName: cit[0][0].streetName.substring(4),
+                city: cit[0][0].city.substring(1),
+                postcode: cit[0][0].postcode.substring(
+                  1,
+                  cit[0][0].postcode.length - 1
+                ),
+                placeOfBirth: cit[0][0].placeOfBirth,
+                vehicleRegistrations: veh[0]
+              };
+              return toReturn;
+            });
+        } catch {
+          return warning;
+        }
       });
   } catch {
-    res.json(warning);
+    return exception;
   }
 };
 
-const queryBankCardByCitizen = async (citizenID, res) => {
+const queryBankCardByCitizen = citizenID => {
   let queryString =
     "SELECT bankCardId, cardNumber, sortCode, b.bankAccountId, b.accountNumber, b.bank, c.forenames, c.surname, c.dateOfBirth FROM citizen AS c " +
     "INNER JOIN bank_account_holders AS b ON c.forenames = b.forenames and c.surname = b.surname and c.dateOfBirth = b.dateOfBirth " +
@@ -137,15 +142,15 @@ const queryBankCardByCitizen = async (citizenID, res) => {
     queryString += " WHERE citizenID = '" + citizenID + "'";
   });
   try {
-    await connection.query(queryString).then(result => {
+    return connection.query(queryString).then(result => {
       if (!result[0].length || !citizenID) {
-        res.json(warning);
+        return warning;
       } else {
-        res.json(result[0]);
+        return result[0];
       }
     });
   } catch {
-    res.json(exception);
+    return exception;
   }
 };
 
@@ -397,42 +402,45 @@ const queryAssociates = async (citizenID, res) => {
     "'";
 
   try {
-    await connection
+    return connection
       .query("SELECT * FROM citizen WHERE citizenID LIKE '" + citizenID + "'")
       .then(cit => {
         const surname = cit[0][0].surname;
         const queryPossibleFamily =
           "SELECT * FROM citizen WHERE surname LIKE '" + surname + "%' LIMIT 5";
+        try {
+          return connection.query(queryPossibleFamily).then(possibleFamily => {
+            return connection
+              .query(queryOutboundAssociateCalls)
+              .then(outboundAssociates => {
+                return connection
+                  .query(queryInboundAssociateCalls)
+                  .then(inboundAssociates => {
+                    if (
+                      (!possibleFamily[0].length &&
+                        !outboundAssociates[0].length &&
+                        !inboundAssociates[0].length) ||
+                      !citizenID
+                    ) {
+                      return warning;
+                    } else {
+                      const toReturn = {
+                        inboundCallAssociates: inboundAssociates[0],
+                        outboundCallAssociates: outboundAssociates[0],
+                        possibleFamily: possibleFamily[0]
+                      };
 
-        connection.query(queryPossibleFamily).then(possibleFamily => {
-          connection
-            .query(queryOutboundAssociateCalls)
-            .then(outboundAssociates => {
-              connection
-                .query(queryInboundAssociateCalls)
-                .then(inboundAssociates => {
-                  if (
-                    (!possibleFamily[0].length &&
-                      !outboundAssociates[0].length &&
-                      !inboundAssociates[0].length) ||
-                    !citizenID
-                  ) {
-                    res.json(warning);
-                  } else {
-                    const toReturn = {
-                      inboundCallAssociates: inboundAssociates[0],
-                      outboundCallAssociates: outboundAssociates[0],
-                      possibleFamily: possibleFamily[0]
-                    };
-
-                    res.send(toReturn);
-                  }
-                });
-            });
-        });
+                      return toReturn;
+                    }
+                  });
+              });
+          });
+        } catch {
+          return warning;
+        }
       });
   } catch {
-    res.json(exception);
+    return exception;
   }
 };
 
@@ -444,5 +452,7 @@ module.exports = {
   queryVehiclesByCitizen,
   queryCallsByCitizen,
   queryFinancialsByCitizen,
-  queryAssociates
+  queryAssociates,
+  warning,
+  exception
 };

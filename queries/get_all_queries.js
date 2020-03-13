@@ -1,8 +1,7 @@
 const { connection } = require("../server/connect_db");
 const utm = require("utm");
 
-const warning = { Warning: "No data found or incorrect input." };
-const exception = { Exception: "Unknown exception." };
+const { warning, exception } = require("../warnings/warnings");
 
 class ConditionalSwitch {
   constructor() {
@@ -139,26 +138,25 @@ const queryFinancialsAll = (
   } else if (eposOrAtm == "atm") {
     atm = true;
   }
-
   const atmInitString =
-    "SELECT k.cardNumber, a.timestamp, latitude, longitude, a.ammount FROM bank_card AS k ";
+
+    "SELECT k.cardNumber, timestamp, latitude, longitude, a.ammount FROM bank_card AS k ";
 
   const eposInitString =
     "SELECT k.cardNumber, timestamp, latitude, longitude FROM bank_card AS k ";
-
-  let queryString =
-    "INNER JOIN epos_transactions AS e on e.bankCardNumber = k.cardNumber ";
-
+  let queryString;
   Cswitch()
     .case(atm, () => {
+      queryString = atmInitString;
       queryString +=
-        "INNER JOIN atm_transactions AS a ON a.bankCardNumber = e.bankCardNumber" +
+
+        "INNER JOIN atm_transactions AS a ON a.bankCardNumber = k.cardNumber" +
         " INNER JOIN atm_point as p ON p.atmId = a.atmId";
-      queryString = atmInitString + queryString;
     })
     .case(epos, () => {
-      queryString += "INNER JOIN epos_terminals as t ON e.eposId = t.id";
-      queryString = eposInitString + queryString;
+      queryString = eposInitString;
+      queryString += "INNER JOIN epos_transactions AS e on e.bankCardNumber = k.cardNumber INNER JOIN epos_terminals as t ON e.eposId = t.id";
+      
     })
     .case(afterTime && beforeTime, () => {
       queryString +=
@@ -176,7 +174,6 @@ const queryFinancialsAll = (
     .case(beforeTime, () => {
       queryString += " WHERE a.timestamp <= '" + beforeTime + "'";
     });
-
   try {
     return connection.query(queryString).then(result => {
       const toSend = filterQueryByRadius(

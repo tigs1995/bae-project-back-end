@@ -11,19 +11,15 @@ router.post("/vehicleExists", (req, res) => {
     }
   });
 });
-
 router.post("/vehicleList", (req, res) => {
   query
     .queryVehicle(req.body.vehicleRegistrationNo)
     .then(vehicle => res.json(vehicle));
 });
-
-router.post("/getVehicleInfo", ({ body }, res) => {
-  query.queryVehicleInfoByReg(body.vehicleRegistrationNo, res);
+router.post("/getVehicleInfo", async ({ body }, res) => {
+  res.json(await query.queryVehicleInfoByReg(body.vehicleRegistrationNo));
 });
-
-router.post("/getANPRInfo", ({ body }, res) => {
-  query.queryANPRInfoByVehReg(body.vehicleRegistrationNo, res);
+router.post("/getANPRInfo", async ({ body }, res) => {
+  res.json(await query.queryANPRInfoByVehReg(body.vehicleRegistrationNo));
 });
-
 module.exports = router;

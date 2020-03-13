@@ -9,12 +9,12 @@ router.post("/citizenList", (req, res) => {
   query.queryCitizen(req.body.surname, req.body.forenames, res);
 });
 
-router.post("/getCitizen", ({ body }, res) => {
-  query.queryCitizenById(body.citizenID, res);
+router.post("/getCitizen", async ({ body }, res) => {
+  res.json(await query.queryCitizenById(body.citizenID, res));
 });
 
-router.post("/getBankCardInfo", ({ body }, res) => {
-  query.queryBankCardByCitizen(body.citizenID, res);
+router.post("/getBankCardInfo", async ({ body }, res) => {
+  res.json(await query.queryBankCardByCitizen(body.citizenID, res));
 });
 
 router.post("/getCitizenCalls", ({ body }, res) => {
@@ -46,7 +46,7 @@ router.post("/getCitizenVehicles", ({ body }, res) => {
   );
 });
 
-router.post("/getAssociates", ({ body }, res) => {
-  query.queryAssociates(body.citizenID, res);
+router.post("/getAssociates", async ({ body }, res) => {
+  res.json(await query.queryAssociates(body.citizenID, res));
 });
 module.exports = router;

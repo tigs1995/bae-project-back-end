@@ -1,9 +1,5 @@
 const { connection } = require("../server/connect_db");
-const utm = require("utm");
-
-
-const warning = { Warning: "No data found or incorrect input." };
-const exception = { Exception: "Unknown exception." };
+const { warning, exception } = require("../warnings/warnings");
 
 class ConditionalSwitch {
   constructor() {
@@ -45,19 +41,26 @@ const Cswitch = () => {
   return new ConditionalSwitch();
 };
 
-
 const queryVehicle = async vehicleRegistrationNo => {
-  const results = await connection.query(
-    "SELECT * FROM vehicle_registrations WHERE vehicleRegistrationNo like '%" +
-      vehicleRegistrationNo +
-      "%'"
-  );
-  return results[0];
+  try {
+    const results = await connection.query(
+      "SELECT * FROM vehicle_registrations WHERE vehicleRegistrationNo like '%" +
+        vehicleRegistrationNo +
+        "%'"
+    );
+    if (results[0].length) {
+      return results[0];
+    } else {
+      return warning;
+    }
+  } catch {
+    return exception;
+  }
 };
 
-const queryVehicleInfoByReg = async (vehicleRegistrationNo, res) => {
+const queryVehicleInfoByReg = vehicleRegistrationNo => {
   try {
-    await connection
+    return connection
       .query(
         "SELECT * FROM vehicle_registrations WHERE vehicleRegistrationNo LIKE '" +
           vehicleRegistrationNo +
@@ -65,7 +68,7 @@ const queryVehicleInfoByReg = async (vehicleRegistrationNo, res) => {
       )
       .then(veh => {
         try {
-          connection
+          return connection
             .query(
               "SELECT * FROM citizen WHERE forenames LIKE '" +
                 veh[0][0].forenames +
@@ -88,19 +91,23 @@ const queryVehicleInfoByReg = async (vehicleRegistrationNo, res) => {
                 colour: veh[0][0].colour,
                 driverLicenceID: veh[0][0].driverLicenceID
               };
-
-              res.json(toReturn);
+              if (toReturn.registrationID) {
+                return toReturn;
+              } else {
+                return warning;
+              }
+              // res.json(toReturn);
             });
         } catch {
-          res.json(Warning);
+          return warning;
         }
       });
   } catch {
-    res.json(Warning);
+    return exception;
   }
 };
 
-const queryANPRInfoByVehReg = async (vehicleRegistrationNo, res) => {
+const queryANPRInfoByVehReg = async vehicleRegistrationNo => {
   let queryString =
     "SELECT timestamp, streetName, latitude, longitude, vehicleRegistrationNo FROM vehicle_registrations AS v " +
     "INNER JOIN anpr_observations AS a ON v.vehicleRegistrationNo = a.vehicleRegistrationNumber " +
@@ -110,15 +117,15 @@ const queryANPRInfoByVehReg = async (vehicleRegistrationNo, res) => {
       " WHERE vehicleRegistrationNo = '" + vehicleRegistrationNo + "'";
   });
   try {
-    await connection.query(queryString).then(result => {
+    return connection.query(queryString).then(result => {
       if (!result[0].length || !vehicleRegistrationNo) {
-        res.json(warning);
+        return warning;
       } else {
-        res.json(result[0]);
+        return result[0];
       }
     });
   } catch {
-    res.json(exception);
+    return exception;
   }
 };
 
