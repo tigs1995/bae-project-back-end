@@ -123,7 +123,7 @@ const queryVehiclesAll = async (
   }
 };
 
-const queryFinancialsAll = async (
+const queryFinancialsAll = (
   latitude,
   longitude,
   radius,
@@ -139,26 +139,22 @@ const queryFinancialsAll = async (
   } else if (eposOrAtm == "atm") {
     atm = true;
   }
-
   const atmInitString =
-    "SELECT k.cardNumber, a.timestamp, latitude, longitude, amount FROM bank_card AS k ";
-
+    "SELECT k.cardNumber, timestamp, latitude, longitude, a.ammount FROM bank_card AS k ";
   const eposInitString =
     "SELECT k.cardNumber, timestamp, latitude, longitude FROM bank_card AS k ";
-
-  let queryString =
-    "INNER JOIN epos_transactions AS e on e.bankCardNumber = k.cardNumber ";
-
+  let queryString;
   Cswitch()
     .case(atm, () => {
+      queryString = atmInitString;
       queryString +=
-        "INNER JOIN atm_transactions AS a ON a.bankCardNumber = e.bankCardNumber" +
-        "INNER JOIN atm_point as p ON p.atmId = a.atmId";
-      queryString = atmInitString + queryString;
+        "INNER JOIN atm_transactions AS a ON a.bankCardNumber = k.cardNumber" +
+        " INNER JOIN atm_point as p ON p.atmId = a.atmId";
     })
     .case(epos, () => {
-      queryString += "INNER JOIN epos_terminals as t ON e.eposId = t.id";
-      queryString = eposInitString + queryString;
+      queryString = eposInitString;
+      queryString += "INNER JOIN epos_transactions AS e on e.bankCardNumber = k.cardNumber INNER JOIN epos_terminals as t ON e.eposId = t.id";
+      
     })
     .case(afterTime && beforeTime, () => {
       queryString +=
@@ -172,9 +168,8 @@ const queryFinancialsAll = async (
     .case(beforeTime, () => {
       queryString += " WHERE timestamp <= '" + beforeTime + "'";
     });
-
   try {
-    await connection.query(queryString).then(result => {
+    return connection.query(queryString).then(result => {
       const toSend = filterQueryByRadius(
         result[0],
         latitude,
@@ -182,13 +177,13 @@ const queryFinancialsAll = async (
         radius
       );
       if (!toSend.length) {
-        res.json(warning);
+        return warning;
       } else {
-        res.json(toSend);
+        return toSend;
       }
     });
   } catch {
-    res.json(exception);
+    return exception;
   }
 };
 
