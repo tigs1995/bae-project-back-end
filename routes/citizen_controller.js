@@ -46,7 +46,7 @@ router.post("/getCitizenVehicles", ({ body }, res) => {
   );
 });
 
-router.post("/getAssociates", ({ body }, res) => {
-  query.queryAssociates(body.citizenID, res);
+router.post("/getAssociates", async ({ body }, res) => {
+  res.json(await query.queryAssociates(body.citizenID, res));
 });
 module.exports = router;

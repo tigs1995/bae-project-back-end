@@ -5,7 +5,8 @@ const {
 } = require("../queries/vehicle_queries");
 const {
   queryCitizenById,
-  queryBankCardByCitizen
+  queryBankCardByCitizen,
+  queryAssociates
 } = require("../queries/citizen_queries");
 const { warning } = require("../warnings/warnings");
 
@@ -71,6 +72,24 @@ describe("Test Queries that take in only an ID or Reg.", function() {
     describe('../queries/vehicle_queries.js - queryANPRInfoByVehReg("JU10 EagsdfgFO");', () => {
       it("Should return a warning.", () => {
         queryANPRInfoByVehReg("JU10 EagsdfgFO").then(result => {
+          assert.equal(result, warning);
+        });
+      });
+    });
+  });
+
+  //get associates
+  describe("Get Associates", () => {
+    describe('../queries/citizen_queries.js - queryAssociates("9237829919");', () => {
+      it("Should return Selena's possible associates.", () => {
+        queryAssociates("9237829919").then(result => {
+          assert.equal(result.possibleFamily[0].citizenID, 7855594543);
+        });
+      });
+    });
+    describe('../queries/citizen_queries.js - queryAssociates("banana");', () => {
+      it("Should return a warning.", () => {
+        queryAssociates("banana").then(result => {
           assert.equal(result, warning);
         });
       });

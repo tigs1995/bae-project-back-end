@@ -402,42 +402,45 @@ const queryAssociates = async (citizenID, res) => {
     "'";
 
   try {
-    await connection
+    return connection
       .query("SELECT * FROM citizen WHERE citizenID LIKE '" + citizenID + "'")
       .then(cit => {
         const surname = cit[0][0].surname;
         const queryPossibleFamily =
           "SELECT * FROM citizen WHERE surname LIKE '" + surname + "%' LIMIT 5";
+        try {
+          return connection.query(queryPossibleFamily).then(possibleFamily => {
+            return connection
+              .query(queryOutboundAssociateCalls)
+              .then(outboundAssociates => {
+                return connection
+                  .query(queryInboundAssociateCalls)
+                  .then(inboundAssociates => {
+                    if (
+                      (!possibleFamily[0].length &&
+                        !outboundAssociates[0].length &&
+                        !inboundAssociates[0].length) ||
+                      !citizenID
+                    ) {
+                      return warning;
+                    } else {
+                      const toReturn = {
+                        inboundCallAssociates: inboundAssociates[0],
+                        outboundCallAssociates: outboundAssociates[0],
+                        possibleFamily: possibleFamily[0]
+                      };
 
-        connection.query(queryPossibleFamily).then(possibleFamily => {
-          connection
-            .query(queryOutboundAssociateCalls)
-            .then(outboundAssociates => {
-              connection
-                .query(queryInboundAssociateCalls)
-                .then(inboundAssociates => {
-                  if (
-                    (!possibleFamily[0].length &&
-                      !outboundAssociates[0].length &&
-                      !inboundAssociates[0].length) ||
-                    !citizenID
-                  ) {
-                    res.json(warning);
-                  } else {
-                    const toReturn = {
-                      inboundCallAssociates: inboundAssociates[0],
-                      outboundCallAssociates: outboundAssociates[0],
-                      possibleFamily: possibleFamily[0]
-                    };
-
-                    res.send(toReturn);
-                  }
-                });
-            });
-        });
+                      return toReturn;
+                    }
+                  });
+              });
+          });
+        } catch {
+          return warning;
+        }
       });
   } catch {
-    res.json(exception);
+    return exception;
   }
 };
 
