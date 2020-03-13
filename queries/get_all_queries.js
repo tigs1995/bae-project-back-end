@@ -174,7 +174,7 @@ const queryFinancialsAll = async (
     });
 
   try {
-    await connection.query(queryString).then(result => {
+    return connection.query(queryString).then(result => {
       const toSend = filterQueryByRadius(
         result[0],
         latitude,
@@ -182,13 +182,13 @@ const queryFinancialsAll = async (
         radius
       );
       if (!toSend.length) {
-        res.json(warning);
+        return warning;
       } else {
-        res.json(toSend);
+        return toSend;
       }
     });
   } catch {
-    res.json(exception);
+    return exception;
   }
 };
 
