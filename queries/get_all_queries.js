@@ -139,7 +139,6 @@ const queryFinancialsAll = (
     atm = true;
   }
   const atmInitString =
-
     "SELECT k.cardNumber, timestamp, latitude, longitude, a.ammount FROM bank_card AS k ";
 
   const eposInitString =
@@ -149,30 +148,25 @@ const queryFinancialsAll = (
     .case(atm, () => {
       queryString = atmInitString;
       queryString +=
-
         "INNER JOIN atm_transactions AS a ON a.bankCardNumber = k.cardNumber" +
         " INNER JOIN atm_point as p ON p.atmId = a.atmId";
     })
     .case(epos, () => {
       queryString = eposInitString;
-      queryString += "INNER JOIN epos_transactions AS e on e.bankCardNumber = k.cardNumber INNER JOIN epos_terminals as t ON e.eposId = t.id";
-      
+      queryString +=
+        "INNER JOIN epos_transactions AS e on e.bankCardNumber = k.cardNumber INNER JOIN epos_terminals as t ON e.eposId = t.id";
     })
     .case(afterTime && beforeTime, () => {
       queryString +=
-        " WHERE a.timestamp BETWEEN '" +
-        afterTime +
-        "' AND '" +
-        beforeTime +
-        "'";
+        " WHERE timestamp BETWEEN '" + afterTime + "' AND '" + beforeTime + "'";
     })
     .break()
     .case(afterTime, () => {
-      queryString += " WHERE a.timestamp >= '" + afterTime + "'";
+      queryString += " WHERE timestamp >= '" + afterTime + "'";
     })
     .break()
     .case(beforeTime, () => {
-      queryString += " WHERE a.timestamp <= '" + beforeTime + "'";
+      queryString += " WHERE timestamp <= '" + beforeTime + "'";
     });
   try {
     return connection.query(queryString).then(result => {
