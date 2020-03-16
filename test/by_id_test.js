@@ -87,7 +87,7 @@ describe("Test Queries that take in only an ID or Reg.", function () {
         });
       });
     });
-    //NEED TO FIX THIS!!!
+
     describe('../queries/citizen_queries.js - queryAssociates("banana");', () => {
       it("Should return a warning.", () => {
         return queryAssociates("banana").then(result => {
