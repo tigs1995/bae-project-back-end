@@ -1,15 +1,15 @@
 const router = require("express").Router();
 const query = require("../queries/get_all_queries");
 
-router.post("/getVehiclesAll", ({ body }, res) => {
-  query.queryVehiclesAll(
+router.post("/getVehiclesAll", async ({ body }, res) => {
+  res.json(await query.queryVehiclesAll(
     body.latitude,
     body.longitude,
     body.radius,
     body.afterTime,
     body.beforeTime,
     res
-  );
+  ));
 });
 
 router.post("/getFinancialsAll", async ({ body }, res) => {

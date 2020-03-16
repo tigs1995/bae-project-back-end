@@ -78,7 +78,7 @@ function filterQueryByRadius(query, latOffset, longOffset, radius) {
   return toReturn;
 }
 
-const queryVehiclesAll = async (
+const queryVehiclesAll = (
   latitude,
   longitude,
   radius,
@@ -105,7 +105,7 @@ const queryVehiclesAll = async (
     });
 
   try {
-    await connection.query(queryString).then(result => {
+    return connection.query(queryString).then(result => {
       const toSend = filterQueryByRadius(
         result[0],
         latitude,
@@ -113,13 +113,13 @@ const queryVehiclesAll = async (
         radius
       );
       if (!toSend.length) {
-        res.json(warning);
+        return warning;
       } else {
-        res.json(toSend);
+        return toSend;
       }
     });
   } catch {
-    res.json(exception);
+    return exception;
   }
 };
 
