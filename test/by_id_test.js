@@ -1,14 +1,18 @@
 const assert = require("assert");
 const {
-  queryVehicleInfoByReg,
-  queryANPRInfoByVehReg
+    queryVehicleInfoByReg,
+    queryANPRInfoByVehReg
 } = require("../queries/vehicle_queries");
 const {
-  queryCitizenById,
-  queryBankCardByCitizen,
-  queryAssociates
+    queryCitizenById,
+    queryBankCardByCitizen,
+    queryAssociates,
+    queryCallsByCitizen,
+    queryFinancialsByCitizen
 } = require("../queries/citizen_queries");
-const { warning } = require("../warnings/warnings");
+const {
+    warning
+} = require("../warnings/warnings");
 
 //vehicle by reg
 describe("Test Queries that take in only an ID or Reg.", function () {
@@ -96,4 +100,76 @@ describe("Test Queries that take in only an ID or Reg.", function () {
       });
     });
   });
+});
+
+//getCitizenCalls
+describe("Get calls by citizen", () => {
+    //inbound sucess
+    describe('../queries/citizen_queries.js - queryCallsByCitizen("6724774958","2015-05-01T09:09:29.000Z","2015-05-01T09:09:30.000Z","inbound");', () => {
+        it("Should return caller MSISDN.", () => {
+            return queryCallsByCitizen("6724774958", "2015-05-01T09:09:29.000Z", "2015-05-01T09:09:30.000Z", "inbound").then(result => {
+                assert.equal(result[0].callerMSISDN, "07700 924376");
+            });
+        });
+    });
+    //inbound fail
+    describe('../queries/citizen_queries.js - queryCallsByCitizen("6724756465574958","2015-05-01T09:09:29.000Z","2015-05-01T09:09:30.000Z","inbound");', () => {
+        it("Should return a warning.", () => {
+            return queryCallsByCitizen("6724756465574958", "2015-05-01T09:09:29.000Z", "2015-05-01T09:09:30.000Z", "inbound").then(result => {
+                assert.equal(result, warning);
+            });
+        });
+    });
+    //outbound sucess
+    describe('../queries/citizen_queries.js - queryCallsByCitizen("7138293318","2015-05-01T06:52:04.000Z","2015-05-01T06:52:05.000Z","outbound");', () => {
+        it("Should return reciever MSISDN.", () => {
+            return queryCallsByCitizen("7138293318","2015-05-01T06:52:04.000Z","2015-05-01T06:52:05.000Z","outbound").then(result => {
+                assert.equal(result[0].receiverMSISDN, "07700 190723");
+            });
+        });
+    });
+    //outbound fail
+    describe('../queries/citizen_queries.js - queryCallsByCitizen("71367655456393908","2015-05-01T06:52:04.000Z","2015-05-01T06:52:05.000Z","outbound");', () => {
+        it("Should return a warning.", () => {
+            return queryCallsByCitizen("71367655456393908","2015-05-01T06:52:04.000Z","2015-05-01T06:52:05.000Z","outbound").then(result => {
+                assert.equal(result, warning);
+            });
+        });
+    });
+});
+
+//getCitizenFinancials
+describe("Get financials by citizen", () => {
+    //epos sucess
+    describe('../queries/citizen_queries.js - getCitizenFinancials("9237829918","2015-05-01T14:35:01.000Z","2015-05-01T14:35:02.000Z","epos");', () => {
+        it("Should return card number.", () => {
+            return queryFinancialsByCitizen("9237829918","2015-05-01T14:35:01.000Z","2015-05-01T14:35:02.000Z","epos").then(result => {
+                assert.equal(result[0].cardNumber, "1233798489272791");
+            });
+        });
+    });
+    //epos fail
+    describe('../queries/citizen_queries.js - getCitizenFinancials("92343657829918","2015-05-01T14:35:01.000Z","2015-05-01T14:35:02.000Z","epos");', () => {
+        it("Should return a warning.", () => {
+            return queryFinancialsByCitizen("92343657829918","2015-05-01T14:35:01.000Z","2015-05-01T14:35:02.000Z","epos").then(result => {
+                assert.equal(result, warning);
+            });
+        });
+    });
+    //atm sucess
+    describe('../queries/citizen_queries.js - getCitizenFinancials("9237829918","2015-05-01T14:37:20.000Z","2015-05-01T14:37:21.000Z","atm");', () => {
+        it("Should return card number.", () => {
+            return queryFinancialsByCitizen("9237829918","2015-05-01T14:37:20.000Z","2015-05-01T14:37:21.000Z","atm").then(result => {
+                assert.equal(result[0].cardNumber, "1233798489272791");
+            });
+        });
+    });
+    //atm fail
+    describe('../queries/citizen_queries.js - getCitizenFinancials("9237546357829918","2015-05-01T14:37:20.000Z","2015-05-01T14:37:21.000Z","atm");', () => {
+        it("Should return a warning.", () => {
+            return queryFinancialsByCitizen("9237546357829918","2015-05-01T14:37:20.000Z","2015-05-01T14:37:21.000Z","atm").then(result => {
+                assert.equal(result, warning);
+            });
+        });
+    });
 });

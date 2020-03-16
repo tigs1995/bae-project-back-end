@@ -18,24 +18,24 @@ router.post("/getBankCardInfo", async ({ body }, res) => {
   res.json(await query.queryBankCardByCitizen(body.citizenID, res));
 });
 
-router.post("/getCitizenCalls", ({ body }, res) => {
-  query.queryCallsByCitizen(
+router.post("/getCitizenCalls", async ({ body }, res) => {
+  res.json(await query.queryCallsByCitizen(
     body.citizenID,
     body.afterTime,
     body.beforeTime,
     body.inboundOrOutbound,
     res
-  );
+  ));
 });
 
-router.post("/getCitizenFinancials", ({ body }, res) => {
-  query.queryFinancialsByCitizen(
+router.post("/getCitizenFinancials", async ({ body }, res) => {
+  res.json(await query.queryFinancialsByCitizen(
     body.citizenID,
     body.afterTime,
     body.beforeTime,
     body.eposOrAtm,
     res
-  );
+  ));
 });
 
 router.post("/getCitizenVehicles", ({ body }, res) => {

@@ -212,7 +212,7 @@ const queryVehiclesByCitizen = async (
   }
 };
 
-const queryCallsByCitizen = async (
+const queryCallsByCitizen =  (
   citizenID,
   afterTime,
   beforeTime,
@@ -285,19 +285,19 @@ const queryCallsByCitizen = async (
     });
 
   try {
-    await connection.query(queryString).then(result => {
+    return connection.query(queryString).then(result => {
       if (!result[0].length || !citizenID) {
-        res.json(warning);
+        return warning;
       } else {
-        res.json(result[0]);
+        return result[0];
       }
     });
   } catch {
-    res.json(exception);
+    return exception;
   }
 };
 
-const queryFinancialsByCitizen = async (
+const queryFinancialsByCitizen = (
   citizenID,
   afterTime,
   beforeTime,
@@ -368,15 +368,15 @@ const queryFinancialsByCitizen = async (
     });
 
   try {
-    await connection.query(queryString).then(result => {
+    return connection.query(queryString).then(result => {
       if (!result[0].length || !citizenID) {
-        res.json(warning);
+        return warning;
       } else {
-        res.json(result[0]);
+        return result[0];
       }
     });
   } catch {
-    res.json(exception);
+    return exception;
   }
 };
 
