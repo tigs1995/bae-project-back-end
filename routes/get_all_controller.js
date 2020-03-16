@@ -13,7 +13,6 @@ router.post("/getVehiclesAll", async ({ body }, res) => {
 });
 
 router.post("/getFinancialsAll", async ({ body }, res) => {
-
   res.json(await query.queryFinancialsAll(
     body.latitude,
     body.longitude,
@@ -26,8 +25,8 @@ router.post("/getFinancialsAll", async ({ body }, res) => {
 
 });
 
-router.post("/getCallsAll", ({ body }, res) => {
-  query.queryCallsAll(
+router.post("/getCallsAll", async ({ body }, res) => {
+  res.json(await query.queryCallsAll(
     body.latitude,
     body.longitude,
     body.radius,
@@ -35,7 +34,7 @@ router.post("/getCallsAll", ({ body }, res) => {
     body.beforeTime,
     body.inboundOrOutbound,
     res
-  );
+  ));
 });
 
 module.exports = router;

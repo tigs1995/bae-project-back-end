@@ -4,7 +4,7 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "t": "mocha --timeout 10000",
+    "t": "mocha --timeout 50000",
     "start": "node index.js",
     "test": "nyc npm run t"
   },

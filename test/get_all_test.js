@@ -1,7 +1,7 @@
 const assert = require("assert");
 const { warning } = require("../warnings/warnings");
 const {
-    queryFinancialsAll, queryVehiclesAll
+    queryFinancialsAll, queryVehiclesAll, queryCallsAll
 } = require("../queries/get_all_queries");
 
 
@@ -26,7 +26,7 @@ describe("All Financials", () => {
 });
 
 // queryVehiclesAll
-describe("All Financials", () => {
+describe("All Vehicles", () => {
     describe('../queries/get_all_queries.js - queryVehiclesAll("53.74", "-1.64", "5", "2015-05-01T0:0:00Z", "2015-05-02T0:0:00Z")', () => {
         it("Should return vehicle registration number.", () => {
             return queryVehiclesAll("53.74", "-1.64", "5", "2015-05-01T0:0:00Z", "2015-05-02T0:0:00Z").then(result => {
@@ -38,6 +38,24 @@ describe("All Financials", () => {
         it("Should return warning.", () => {
             return queryVehiclesAll("53.74", "-1.64", "ferf54", "2015-05-01T0:0:00Z", "2015-05-02T0:0:00Z").then(result => {
                 assert.equal(result, warning);
+            });
+        });
+    });
+});
+
+// queryCallsAll
+describe("All Calls", () => {
+    describe('../queries/get_all_queries.js - queryCallsAll("53.74", "-1.64", "1000", "2015-05-01T09:03:32.000Z", "2015-05-01T09:03:35.000Z", "inbound")', () => {
+        it("Should return caller MSISDN.", () => {
+            return queryCallsAll("53.74", "-1.64", "1000", "2015-05-01T09:03:32.000Z", "2015-05-01T09:03:35.000Z", "inbound").then(toSend => {
+                assert.equal(toSend[0].callerMSISDN, "07700 033903");
+            });
+        });
+    });
+    describe('../queries/get_all_queries.js - queryCallsAll("53.74", "-1.64", "1000", "2015-05-01T09:03:32.000Z", "2015-05-01T09:03:35.000Z", "inbound");', () => {
+        it("Should return warning.", () => {
+            return queryCallsAll("53.74", "-1.64", "ferf54", "2015-05-01T09:03:32.000Z", "2015-05-01T09:03:35.000Z", "inbound").then(toSend => {
+                assert.equal(toSend, warning);
             });
         });
     });

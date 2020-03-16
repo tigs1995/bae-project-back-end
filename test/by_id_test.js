@@ -12,7 +12,6 @@ const { warning } = require("../warnings/warnings");
 
 //vehicle by reg
 describe("Test Queries that take in only an ID or Reg.", function () {
-  this.timeout(20000);
   describe('../queries/vehicle_queries.js - queryVehicleInfoByReg("IT72 YSC");', () => {
     it("Should return true.", () => {
       return queryVehicleInfoByReg("IT72 YSC").then(toReturn => {
