@@ -27,7 +27,6 @@ describe("All Financials", () => {
 
 // queryVehiclesAll
 describe("All Financials", () => {
-    // standard epos
     describe('../queries/get_all_queries.js - queryVehiclesAll("53.74", "-1.64", "5", "2015-05-01T0:0:00Z", "2015-05-02T0:0:00Z")', () => {
         it("Should return vehicle registration number.", () => {
             return queryVehiclesAll("53.74", "-1.64", "5", "2015-05-01T0:0:00Z", "2015-05-02T0:0:00Z").then(result => {
@@ -35,7 +34,6 @@ describe("All Financials", () => {
             });
         });
     });
-    // standard epos failure
     describe('../queries/get_all_queries.js - queryVehiclesAll("53.74", "-1.64", "5", "2015-05-01T0:0:00Z", "2015-05-02T0:0:00Z");', () => {
         it("Should return warning.", () => {
             return queryVehiclesAll("53.74", "-1.64", "ferf54", "2015-05-01T0:0:00Z", "2015-05-02T0:0:00Z").then(result => {
