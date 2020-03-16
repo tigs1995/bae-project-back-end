@@ -1,5 +1,6 @@
 const router = require("express").Router();
 const query = require("../queries/citizen_queries");
+const { warning } = require("../warnings/warnings");
 
 router.post("/citizenExists", (req, res) => {
   query.queryCitizenExists(req.body.surname, req.body.forenames, res);
@@ -46,7 +47,7 @@ router.post("/getCitizenVehicles", ({ body }, res) => {
   );
 });
 
-router.post("/getAssociates", async ({ body }, res) => {
-  res.json(await query.queryAssociates(body.citizenID, res));
+router.post("/getAssociates", ({ body }, res) => {
+  query.queryAssociates(body.citizenID).then(x => res.json(x)).catch(e => res.send(warning));
 });
 module.exports = router;

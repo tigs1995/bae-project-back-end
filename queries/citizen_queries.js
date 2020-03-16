@@ -46,10 +46,10 @@ const queryCitizenExists = async (surname, forenames, res, test) => {
   try {
     const results = await connection.query(
       "SELECT * FROM citizen WHERE forenames LIKE '%" +
-        forenames +
-        "%' AND surname LIKE '%" +
-        surname +
-        "%'"
+      forenames +
+      "%' AND surname LIKE '%" +
+      surname +
+      "%'"
     );
     if (results[0].length) {
       if (test) return true;
@@ -67,10 +67,10 @@ const queryCitizen = async (surname, forenames, res, test) => {
   try {
     const results = await connection.query(
       "SELECT * FROM citizen WHERE forenames LIKE '%" +
-        forenames +
-        "%' AND surname LIKE '%" +
-        surname +
-        "%'"
+      forenames +
+      "%' AND surname LIKE '%" +
+      surname +
+      "%'"
     );
     if (results[0].length) {
       if (test) return results[0];
@@ -93,14 +93,14 @@ const queryCitizenById = citizenID => {
           return connection
             .query(
               "SELECT * FROM vehicle_registrations WHERE forenames LIKE '" +
-                cit[0][0].forenames +
-                "'" +
-                " AND surname LIKE '" +
-                cit[0][0].surname +
-                "'" +
-                " AND dateOfBirth LIKE '" +
-                cit[0][0].dateOfBirth +
-                "'"
+              cit[0][0].forenames +
+              "'" +
+              " AND surname LIKE '" +
+              cit[0][0].surname +
+              "'" +
+              " AND dateOfBirth LIKE '" +
+              cit[0][0].dateOfBirth +
+              "'"
             )
             .then(veh => {
               for (let i of veh[0]) {
@@ -380,7 +380,7 @@ const queryFinancialsByCitizen = async (
   }
 };
 
-const queryAssociates = async (citizenID, res) => {
+const queryAssociates = (citizenID, res) => {
   const queryOutboundAssociateCalls =
     "SELECT c.citizenID, z.citizenID as associateID, z.forenames, z.surname FROM citizen AS c " +
     "INNER JOIN subscriber_records AS s ON c.surname = s.surname AND c.forenames = s.forenames AND c.dateOfBirth = s.dateOfBirth " +
@@ -405,35 +405,46 @@ const queryAssociates = async (citizenID, res) => {
     return connection
       .query("SELECT * FROM citizen WHERE citizenID LIKE '" + citizenID + "'")
       .then(cit => {
-        const surname = cit[0][0].surname;
+        let surname = null;
+        try {
+         surname = cit[0][0].surname;
+        } catch {};
         const queryPossibleFamily =
           "SELECT * FROM citizen WHERE surname LIKE '" + surname + "%' LIMIT 5";
         try {
           return connection.query(queryPossibleFamily).then(possibleFamily => {
-            return connection
-              .query(queryOutboundAssociateCalls)
-              .then(outboundAssociates => {
-                return connection
-                  .query(queryInboundAssociateCalls)
-                  .then(inboundAssociates => {
-                    if (
-                      (!possibleFamily[0].length &&
-                        !outboundAssociates[0].length &&
-                        !inboundAssociates[0].length) ||
-                      !citizenID
-                    ) {
-                      return warning;
-                    } else {
-                      const toReturn = {
-                        inboundCallAssociates: inboundAssociates[0],
-                        outboundCallAssociates: outboundAssociates[0],
-                        possibleFamily: possibleFamily[0]
-                      };
+            try {
+              return connection
+                .query(queryOutboundAssociateCalls)
+                .then(outboundAssociates => {
+                  try {
+                    return connection
+                      .query(queryInboundAssociateCalls)
+                      .then(inboundAssociates => {
+                        if (
+                          (!possibleFamily[0].length &&
+                            !outboundAssociates[0].length &&
+                            !inboundAssociates[0].length) ||
+                          !citizenID
+                        ) {
+                          return warning;
+                        } else {
+                          const toReturn = {
+                            inboundCallAssociates: inboundAssociates[0],
+                            outboundCallAssociates: outboundAssociates[0],
+                            possibleFamily: possibleFamily[0]
+                          };
 
-                      return toReturn;
-                    }
-                  });
-              });
+                          return toReturn;
+                        }
+                      });
+                  } catch {
+                    return warning;
+                  }
+                });
+            } catch {
+              return warning;
+            }
           });
         } catch {
           return warning;
